@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 import asyncio
+import tempfile
+from pathlib import Path
 
 import typer
 
+from adda.api.app import create_demo_tools
 from adda.logging import configure_logging
+from adda.orchestrator import CustomOrchestrator
 from adda.retrieval.merge import assemble_corpus
 
 app = typer.Typer(help="Autonomous Drug Discovery Agent")
@@ -40,6 +44,65 @@ def retrieve(
         )
         suffix = f" ({identifiers})" if identifiers else ""
         typer.echo(f"- {publication.title}{suffix}")
+
+
+@app.command("run")
+def run_agent(
+    disease: str = typer.Option(
+        "idiopathic pulmonary fibrosis",
+        "--disease",
+        "-d",
+        help="Disease query for the end-to-end demo pipeline.",
+    ),
+) -> None:
+    """Run the deterministic demo agent pipeline and print a results table."""
+
+    configure_logging()
+    checkpoint_dir = Path(tempfile.gettempdir()) / "adda-cli-checkpoints"
+    state = CustomOrchestrator(
+        create_demo_tools(),
+        checkpoint_dir,
+        wait_multiplier=0,
+    ).run(disease)
+
+    publications = len(state.corpus.publications) if state.corpus else 0
+    top_targets = ", ".join(
+        f"{target.target_symbol} ({target.evidence_tier})"
+        for target in state.target_scores[:5]
+    )
+    typer.echo(
+        "| "
+        + " | ".join(
+            [
+                "Disease",
+                "Pubs",
+                "Unique entities",
+                "KG nodes",
+                "KG relations",
+                "Top-5 targets",
+                "Citation accuracy",
+            ]
+        )
+        + " |"
+    )
+    typer.echo("|---|---:|---:|---:|---:|---|---:|")
+    typer.echo(
+        "| "
+        + " | ".join(
+            [
+                state.disease_query,
+                str(publications),
+                str(len(state.entities)),
+                str(state.report_json.get("kg_nodes", len(state.entities) + 1)),
+                str(state.report_json.get("kg_relations", 0)),
+                top_targets,
+                f"{state.citation_accuracy or 0:.4f}",
+            ]
+        )
+        + " |"
+    )
+    typer.echo("")
+    typer.echo(state.report_markdown or "")
 
 
 if __name__ == "__main__":

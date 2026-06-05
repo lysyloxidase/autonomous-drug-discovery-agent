@@ -1,7 +1,8 @@
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PATH="/root/.local/bin:${PATH}"
 
 WORKDIR /app
 
@@ -18,5 +19,4 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
     && /root/.local/bin/uv sync --no-dev
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["uv", "run", "adda", "retrieve", "glioblastoma", "--max-results", "20"]
-
+CMD ["uv", "run", "uvicorn", "adda.api.app:app", "--host", "0.0.0.0", "--port", "8000"]

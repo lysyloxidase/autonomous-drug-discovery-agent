@@ -1,6 +1,6 @@
 [project]
 name = "autonomous-drug-discovery-agent"
-version = "0.1.0"
+version = "1.0.0"
 description = "Autonomous retrieval-first drug discovery research agent."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -12,6 +12,7 @@ keywords = ["drug-discovery", "pubmed", "openalex", "europe-pmc", "pubtator"]
 dependencies = [
   "chembl-webresource-client>=0.10.9",
   "diskcache>=5.6.3",
+  "fastapi>=0.136.3",
   "graphdatascience>=1.11.0",
   "httpx>=0.27.0",
   "langgraph>=1.2.4",
@@ -23,9 +24,11 @@ dependencies = [
   "pyyaml>=6.0.1",
   "rdkit>=2026.3.2",
   "redis>=5.0.3",
+  "sse-starlette>=3.4.4",
   "structlog>=24.1.0",
   "tenacity>=8.2.3",
   "typer>=0.12.3",
+  "uvicorn>=0.49.0",
 ]
 
 [project.optional-dependencies]
@@ -61,6 +64,7 @@ dev = [
   "ruff>=0.4.4",
   "pyright>=1.1.365",
   "vcrpy>=6.0.1",
+  "pre-commit>=4.6.0",
 ]
 
 [tool.ruff]
@@ -75,11 +79,11 @@ ignore = ["UP047"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "--cov=adda.retrieval --cov=adda.extraction --cov=adda.evidence --cov=adda.kg --cov=adda.ranking --cov=adda.molecules --cov=adda.orchestrator --cov=adda.report --cov=adda.ratelimit --cov=adda.cache --cov-report=term-missing --cov-fail-under=85"
+addopts = "--cov=adda --cov-report=term-missing --cov-fail-under=85"
 
 [tool.coverage.run]
 branch = true
-source = ["adda.retrieval", "adda.extraction", "adda.evidence", "adda.kg", "adda.ranking", "adda.molecules", "adda.orchestrator", "adda.report", "adda.ratelimit", "adda.cache"]
+source = ["adda"]
 
 [tool.pyright]
 include = ["src", "tests"]

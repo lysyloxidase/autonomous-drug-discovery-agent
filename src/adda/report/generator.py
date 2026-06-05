@@ -191,9 +191,13 @@ class ReportGenerator:
     def generate(self, state: AgentState) -> AgentState:
         """Attach all report formats to an AgentState."""
 
+        prior_payload = dict(state.report_json)
         bundle = self.build_bundle(state)
         state.report_markdown = bundle.markdown
         state.report_html = bundle.html
         state.report_pdf = bundle.pdf
-        state.report_json = json.loads(json.dumps(bundle.json_payload))
+        state.report_json = {
+            **prior_payload,
+            **json.loads(json.dumps(bundle.json_payload)),
+        }
         return state

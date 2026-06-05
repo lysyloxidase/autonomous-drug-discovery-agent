@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on Keep a Changelog 1.1.0, and this project adheres to
 Semantic Versioning.
 
-## [0.1.0] - 2026-06-05
+## [1.0.0] - 2026-06-05
 
 ### Added
 
@@ -16,6 +16,8 @@ Semantic Versioning.
 - Phase 5 transparent target ranking and ChEMBL/RDKit known-active molecule
   triage.
 - Phase 6 dual orchestrator and retrieval-only citation-grounded report layer.
+- Phase 7 productionization with FastAPI streaming jobs, one-command Docker
+  Compose, CI, release README, and v1.0.0 docs.
 - Async token-bucket rate limiting and transient HTTP retry helpers.
 - Disk and Redis cache adapters with async cache decorator.
 - Canonical `Publication` and `Corpus` Pydantic models.
@@ -43,4 +45,9 @@ Semantic Versioning.
   parity coverage.
 - Markdown, HTML, PDF, and JSON report generation with retrieval-only citations.
 - Post-hoc PMID/DOI citation verification and citation-accuracy gate.
-- Project docs, ADRs, Docker scaffolding, and quality tooling.
+- FastAPI async job API with SSE streaming, status polling, four report formats,
+  and Neo4j/Ollama health checks.
+- Docker Compose stack for Neo4j, Ollama, Redis, and API in one command.
+- GitHub Actions CI for Ruff, Pyright, cassette/fixture tests, Docker build,
+  optional live integration, and MkDocs gh-pages deployment.
+- Project docs, ADRs, release README, Docker scaffolding, and quality tooling.

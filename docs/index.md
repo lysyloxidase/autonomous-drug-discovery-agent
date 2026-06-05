@@ -13,3 +13,7 @@ explicitly labeled as known actives only, not de novo design or docking.
 Phase 6 adds dual orchestration and citation-grounded report generation. The
 custom and LangGraph orchestrators run the same nodes, and reports are verified
 with a retrieval-only citation-accuracy gate.
+
+The v1.0.0 release adds the FastAPI streaming job service, one-command Docker
+Compose stack, CI workflow, and production README with results and
+real-vs-mocked boundaries.

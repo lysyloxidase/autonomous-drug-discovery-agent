@@ -1,9 +1,4 @@
 services:
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-
   neo4j:
     image: neo4j:5-community
     environment:
@@ -13,3 +8,8 @@ services:
     ports:
       - "7474:7474"
       - "7687:7687"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
