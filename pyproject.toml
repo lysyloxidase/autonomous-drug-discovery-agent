@@ -8,7 +8,23 @@ license = { text = "Apache-2.0" }
 authors = [
   { name = "lysyloxidase" }
 ]
-keywords = ["drug-discovery", "pubmed", "openalex", "europe-pmc", "pubtator"]
+keywords = [
+  "ai-agent",
+  "bioinformatics",
+  "biomedical-literature",
+  "chembl",
+  "drug-discovery",
+  "europe-pmc",
+  "fastapi",
+  "knowledge-graph",
+  "neo4j",
+  "open-targets",
+  "openalex",
+  "pubmed",
+  "pubtator",
+  "rdkit",
+  "therapeutic-targets",
+]
 dependencies = [
   "chembl-webresource-client>=0.10.9",
   "diskcache>=5.6.3",

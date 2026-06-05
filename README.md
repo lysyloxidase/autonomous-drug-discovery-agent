@@ -12,6 +12,25 @@ WARNING: Research-hypothesis-generating only. NOT clinical advice. NOT a
 substitute for validated drug discovery, medical review, medicinal chemistry,
 toxicology, clinical trials, or regulatory assessment.
 
+## About
+
+This repository is a full-stack local prototype for evidence-grounded
+therapeutic target discovery. It is designed to make every scientific claim
+inspectable: each target ranking is backed by retrieved literature identifiers,
+ontology-normalized entities, evidence-tier reasoning, knowledge graph
+provenance, and citation checks.
+
+The project is intentionally conservative. It does not claim clinical utility,
+does not perform docking, and does not generate new molecules. It focuses on
+organizing public biomedical evidence into a transparent research workflow.
+
+## Keywords
+
+`ai-agent`, `bioinformatics`, `biomedical-literature`, `chembl`,
+`drug-discovery`, `europe-pmc`, `fastapi`, `knowledge-graph`, `neo4j`,
+`open-targets`, `openalex`, `pubmed`, `pubtator`, `rdkit`,
+`therapeutic-targets`
+
 ## What It Does
 
 Given a disease name, the agent runs a typed pipeline:
