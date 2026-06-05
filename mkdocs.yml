@@ -1,0 +1,15 @@
+site_name: Autonomous Drug Discovery Agent
+theme:
+  name: material
+nav:
+  - Home: index.md
+  - Architecture: architecture.md
+  - Real vs Mocked: real-vs-mocked.md
+  - Caveats: caveats.md
+  - ADRs:
+      - Retrieval Stack: adr/0001-retrieval-stack.md
+      - Local LLM: adr/0002-local-llm-ollama.md
+      - Citation Retrieval: adr/0003-retrieval-only-citation.md
+      - ChEMBL Licensing: adr/0004-chembl-not-drugbank.md
+      - Dual Orchestrator: adr/0005-dual-orchestrator.md
+

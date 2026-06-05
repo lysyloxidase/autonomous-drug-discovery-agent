@@ -1,0 +1,24 @@
+pubmed:
+  base_url: https://eutils.ncbi.nlm.nih.gov
+  requests_per_second: 3
+  burst: 3
+  timeout_seconds: 20
+
+europepmc:
+  base_url: https://www.ebi.ac.uk/europepmc/webservices/rest
+  requests_per_second: 10
+  burst: 10
+  timeout_seconds: 20
+
+openalex:
+  base_url: https://api.openalex.org
+  requests_per_second: 5
+  burst: 5
+  timeout_seconds: 20
+
+pubtator3:
+  base_url: https://www.ncbi.nlm.nih.gov/research/pubtator3-api
+  requests_per_second: 3
+  burst: 3
+  timeout_seconds: 20
+

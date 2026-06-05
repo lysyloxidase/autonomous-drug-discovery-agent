@@ -1,0 +1,5 @@
+cache:
+  backend: disk
+  directory: .cache/adda
+  ttl_seconds: 86400
+
