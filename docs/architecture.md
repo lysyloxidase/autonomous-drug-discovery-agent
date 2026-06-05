@@ -19,6 +19,8 @@ flowchart LR
   X --> G[Ontology grounding]
   G --> KG[Neo4j KG]
   KG --> CEN[GDS centrality]
+  KG --> EV[Evidence tiering]
+  EV --> OT[Open Targets]
 ```
 
 Each source has its own token bucket. Source failures are isolated so one
@@ -32,3 +34,7 @@ ranking can separate supported edges from speculative ones.
 Phase 3 batch-loads grounded nodes and relationships into Neo4j with APOC.
 Every edge carries provenance properties so downstream evidence ranking can
 audit exactly where a graph claim came from.
+
+Phase 4 adds Open Targets grounding and writes `evidence_tier` back onto graph
+edges. Co-occurrence-only and unverified local-LLM edges remain speculative even
+when they are present in the KG.

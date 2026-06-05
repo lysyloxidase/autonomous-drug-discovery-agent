@@ -26,6 +26,8 @@ measurement.
 | Extraction benchmark | Implemented | precision/recall/F1 report writer |
 | Neo4j knowledge graph | Implemented | schema constraints, APOC batch load, provenance on every edge |
 | GDS centrality | Implemented | PageRank, degree, betweenness normalized to 0-1 |
+| Open Targets evidence | Implemented | GraphQL associations, datatype scores, tractability |
+| Evidence tiering | Implemented | robust/plausible/speculative with co-occurrence forced speculative |
 
 ## Extraction Honesty Gate
 
@@ -73,4 +75,5 @@ source counts and cache-hit metadata. Phase 2 turns PubTator3 annotations into
 grounded `Entity` and typed `Relation` records, then supplements gaps with
 tagged scispaCy and local-LLM fallbacks. Phase 3 loads those records into Neo4j
 with required provenance on every edge and computes GDS centrality features for
-the ranking layer.
+the ranking layer. Phase 4 grounds disease-target claims in Open Targets and
+writes explainable evidence tiers back to KG relationships.

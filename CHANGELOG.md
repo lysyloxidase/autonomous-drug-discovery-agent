@@ -12,6 +12,7 @@ Semantic Versioning.
 - Phase 1 retrieval layer for PubMed, Europe PMC, OpenAlex, and PubTator3.
 - Phase 2 entity extraction and ontology grounding layer.
 - Phase 3 Neo4j knowledge graph and centrality layer.
+- Phase 4 Open Targets evidence grounding and tiering layer.
 - Async token-bucket rate limiting and transient HTTP retry helpers.
 - Disk and Redis cache adapters with async cache decorator.
 - Canonical `Publication` and `Corpus` Pydantic models.
@@ -24,4 +25,9 @@ Semantic Versioning.
 - Neo4j schema constraints and APOC batch loading.
 - Required edge provenance model for all KG relationships.
 - GDS PageRank, degree, and betweenness centrality wrappers.
+- Open Targets GraphQL client for associations and tractability.
+- Harmonic-sum evidence aggregation and known-top-target validation gate.
+- Robust/plausible/speculative evidence tiering with co-occurrence forced
+  speculative.
+- Neo4j evidence-tier writeback helper.
 - Project docs, ADRs, Docker scaffolding, and quality tooling.

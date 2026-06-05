@@ -71,11 +71,11 @@ ignore = ["UP047"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "--cov=adda.retrieval --cov=adda.extraction --cov=adda.kg --cov=adda.ratelimit --cov=adda.cache --cov-report=term-missing --cov-fail-under=85"
+addopts = "--cov=adda.retrieval --cov=adda.extraction --cov=adda.evidence --cov=adda.kg --cov=adda.ratelimit --cov=adda.cache --cov-report=term-missing --cov-fail-under=85"
 
 [tool.coverage.run]
 branch = true
-source = ["adda.retrieval", "adda.extraction", "adda.kg", "adda.ratelimit", "adda.cache"]
+source = ["adda.retrieval", "adda.extraction", "adda.evidence", "adda.kg", "adda.ratelimit", "adda.cache"]
 
 [tool.pyright]
 include = ["src", "tests"]

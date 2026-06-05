@@ -16,3 +16,5 @@
 14. All hypotheses require expert review and experimental validation.
 15. Local-LLM relation extraction is weaker than database-backed extraction and
     must remain speculative unless independently supported.
+16. Open Targets association scores are ranking heuristics, not causal
+    probabilities.

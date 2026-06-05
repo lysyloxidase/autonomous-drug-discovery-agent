@@ -15,3 +15,7 @@ still exercising the same Pydantic schemas and parser paths used by live runs.
 KG tests use mocked Neo4j and GDS clients, plus a Docker Compose config check
 for APOC and Graph Data Science plugin declarations. Live Neo4j integration can
 be added with testcontainers once CI has Docker service support.
+
+Evidence tests use mocked Open Targets GraphQL responses. The production client
+uses the official Open Targets Platform GraphQL endpoint and the same parser
+paths covered by unit tests.
