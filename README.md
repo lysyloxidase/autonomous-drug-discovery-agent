@@ -24,6 +24,8 @@ measurement.
 | scispaCy fallback | Implemented | optional injectable pipeline, tagged fallback output |
 | Local-LLM relation extraction | Implemented | Ollama structured JSON, speculative flags |
 | Extraction benchmark | Implemented | precision/recall/F1 report writer |
+| Neo4j knowledge graph | Implemented | schema constraints, APOC batch load, provenance on every edge |
+| GDS centrality | Implemented | PageRank, degree, betweenness normalized to 0-1 |
 
 ## Extraction Honesty Gate
 
@@ -69,4 +71,6 @@ Phase 1 retrieves a multi-source literature corpus, normalizes all records into
 `Publication`, deduplicates by identifier union, and returns a `Corpus` with
 source counts and cache-hit metadata. Phase 2 turns PubTator3 annotations into
 grounded `Entity` and typed `Relation` records, then supplements gaps with
-tagged scispaCy and local-LLM fallbacks.
+tagged scispaCy and local-LLM fallbacks. Phase 3 loads those records into Neo4j
+with required provenance on every edge and computes GDS centrality features for
+the ranking layer.

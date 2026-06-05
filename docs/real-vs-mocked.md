@@ -11,3 +11,7 @@ available.
 Extraction tests use BioC-shaped PubTator3 fixtures, fake scispaCy-like
 pipelines, and mocked Ollama responses. This keeps the tests deterministic while
 still exercising the same Pydantic schemas and parser paths used by live runs.
+
+KG tests use mocked Neo4j and GDS clients, plus a Docker Compose config check
+for APOC and Graph Data Science plugin declarations. Live Neo4j integration can
+be added with testcontainers once CI has Docker service support.

@@ -5,12 +5,16 @@ services:
       - "6379:6379"
 
   neo4j:
-    image: neo4j:5
+    image: neo4j:5-community
     environment:
-      NEO4J_AUTH: neo4j/password
+      NEO4J_AUTH: neo4j/addadev123
+      NEO4J_PLUGINS: '["apoc","graph-data-science"]'
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*,gds.*
     ports:
       - "7474:7474"
       - "7687:7687"
+    volumes:
+      - neo4j_data:/data
 
   ollama:
     image: ollama/ollama:latest
@@ -33,5 +37,5 @@ services:
       REDIS_URL: redis://redis:6379/0
 
 volumes:
+  neo4j_data:
   ollama:
-

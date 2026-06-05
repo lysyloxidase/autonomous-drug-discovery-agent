@@ -5,6 +5,7 @@ nav:
   - Home: index.md
   - Architecture: architecture.md
   - Extraction: extraction.md
+  - Knowledge Graph: kg.md
   - Real vs Mocked: real-vs-mocked.md
   - Caveats: caveats.md
   - ADRs:
