@@ -1,0 +1,83 @@
+{
+  "entities": [
+    {
+      "text": "TP53",
+      "entity_type": "gene",
+      "normalized_id": "7157",
+      "ontology": "NCBI Gene",
+      "source_pmids": ["1"],
+      "extractor": "pubtator3",
+      "confidence": 1.0
+    },
+    {
+      "text": "glioblastoma",
+      "entity_type": "disease",
+      "normalized_id": "D005909",
+      "ontology": "MeSH",
+      "source_pmids": ["1"],
+      "extractor": "pubtator3",
+      "confidence": 1.0
+    },
+    {
+      "text": "EGFR",
+      "entity_type": "gene",
+      "normalized_id": "1956",
+      "ontology": "NCBI Gene",
+      "source_pmids": ["1"],
+      "extractor": "local_llm",
+      "confidence": 0.4
+    }
+  ],
+  "relations": [
+    {
+      "subject": {
+        "text": "TP53",
+        "entity_type": "gene",
+        "normalized_id": "7157",
+        "ontology": "NCBI Gene",
+        "source_pmids": ["1"],
+        "extractor": "pubtator3",
+        "confidence": 1.0
+      },
+      "relation": "associate",
+      "object": {
+        "text": "glioblastoma",
+        "entity_type": "disease",
+        "normalized_id": "D005909",
+        "ontology": "MeSH",
+        "source_pmids": ["1"],
+        "extractor": "pubtator3",
+        "confidence": 1.0
+      },
+      "source_pmids": ["1"],
+      "extractor": "pubtator3",
+      "confidence": 1.0,
+      "is_cooccurrence_only": false
+    },
+    {
+      "subject": {
+        "text": "EGFR",
+        "entity_type": "gene",
+        "normalized_id": "1956",
+        "ontology": "NCBI Gene",
+        "source_pmids": ["1"],
+        "extractor": "local_llm",
+        "confidence": 0.4
+      },
+      "relation": "associate",
+      "object": {
+        "text": "glioblastoma",
+        "entity_type": "disease",
+        "normalized_id": "D005909",
+        "ontology": "MeSH",
+        "source_pmids": ["1"],
+        "extractor": "local_llm",
+        "confidence": 0.4
+      },
+      "source_pmids": ["1"],
+      "extractor": "local_llm",
+      "confidence": 0.4,
+      "is_cooccurrence_only": true
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "evaluated_at": "2026-06-05T00:00:00+00:00",
+  "benchmark_name": "BioRED subset",
+  "ner": {
+    "precision": 0.6667,
+    "recall": 1.0,
+    "f1": 0.8,
+    "true_positives": 2,
+    "false_positives": 1,
+    "false_negatives": 0,
+    "support": 2
+  },
+  "relation_extraction": {
+    "precision": 0.5,
+    "recall": 1.0,
+    "f1": 0.6667,
+    "true_positives": 1,
+    "false_positives": 1,
+    "false_negatives": 0,
+    "support": 1
+  },
+  "notes": [
+    "Smoke subset only; not a claim of full BioRED benchmark performance.",
+    "LLM-only relation false positives are tagged is_cooccurrence_only=true and must be SPECULATIVE downstream."
+  ]
+}
+

@@ -14,4 +14,5 @@
 12. Therapeutic target evidence does not imply druggability.
 13. Association evidence does not imply causation.
 14. All hypotheses require expert review and experimental validation.
-
+15. Local-LLM relation extraction is weaker than database-backed extraction and
+    must remain speculative unless independently supported.

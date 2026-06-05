@@ -1,14 +1,14 @@
 # Autonomous Drug Discovery Agent
 
 Autonomous Drug Discovery Agent turns a disease name into a citation-grounded
-therapeutic-target research report. Phase 1 builds the retrieval foundation:
-PubMed, Europe PMC, OpenAlex, and PubTator3 clients with rate limiting, caching,
-and DOI/PMID/PMCID deduplication.
+therapeutic-target research report. Phase 1 builds the retrieval foundation;
+Phase 2 adds entity extraction, ontology grounding, and honest relation-quality
+measurement.
 
 > Research-only software. This project does not provide clinical advice,
 > diagnosis, treatment recommendations, or patient-specific decision support.
 
-## Phase 1 Scope
+## Scope
 
 | Capability | Status | Notes |
 | --- | --- | --- |
@@ -20,13 +20,28 @@ and DOI/PMID/PMCID deduplication.
 | Caching | Implemented | diskcache by default, Redis optional |
 | Deduplication | Implemented | DOI > PMID > PMCID > title hash |
 | Corpus assembly | Implemented | graceful source degradation and cache-hit flag |
+| PubTator3 entity extraction | Implemented | BioC annotations normalize to ontology IDs |
+| scispaCy fallback | Implemented | optional injectable pipeline, tagged fallback output |
+| Local-LLM relation extraction | Implemented | Ollama structured JSON, speculative flags |
+| Extraction benchmark | Implemented | precision/recall/F1 report writer |
+
+## Extraction Honesty Gate
+
+| Evaluation | NER precision | NER recall | RE precision | RE recall | Notes |
+| --- | ---: | ---: | ---: | ---: | --- |
+| BioRED smoke subset | 0.6667 | 1.0000 | 0.5000 | 1.0000 | Small committed fixture; not full benchmark performance |
+
+LLM-derived relations without database support are always tagged
+`is_cooccurrence_only=true`. Later evidence ranking must force those relations
+to the SPECULATIVE tier.
 
 ## Real vs Mocked
 
 Runtime clients call public literature APIs directly. Tests use mocked HTTP
 responses and local cache backends so CI remains deterministic and does not
-consume API quotas. Later phases can add VCR cassettes for selected integration
-smoke tests without changing the retrieval interfaces.
+consume API quotas. Extraction tests use BioC-shaped PubTator3 fixtures, fake
+scispaCy-like pipelines, and mocked Ollama responses. Later phases can add VCR
+cassettes for selected integration smoke tests without changing the interfaces.
 
 ## Quickstart
 
@@ -52,7 +67,6 @@ make typecheck
 
 Phase 1 retrieves a multi-source literature corpus, normalizes all records into
 `Publication`, deduplicates by identifier union, and returns a `Corpus` with
-source counts and cache-hit metadata. PubTator3 annotations are intentionally
-kept close to the retrieval layer because later phases use them as the primary
-entity evidence source.
-
+source counts and cache-hit metadata. Phase 2 turns PubTator3 annotations into
+grounded `Entity` and typed `Relation` records, then supplements gaps with
+tagged scispaCy and local-LLM fallbacks.

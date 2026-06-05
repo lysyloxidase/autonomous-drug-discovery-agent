@@ -8,3 +8,6 @@ OpenAlex abstract decoding, and deduplication semantics. VCR cassettes can be
 added for periodic integration checks when API credentials and quotas are
 available.
 
+Extraction tests use BioC-shaped PubTator3 fixtures, fake scispaCy-like
+pipelines, and mocked Ollama responses. This keeps the tests deterministic while
+still exercising the same Pydantic schemas and parser paths used by live runs.

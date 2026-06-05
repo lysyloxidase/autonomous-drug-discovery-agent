@@ -4,6 +4,7 @@ theme:
 nav:
   - Home: index.md
   - Architecture: architecture.md
+  - Extraction: extraction.md
   - Real vs Mocked: real-vs-mocked.md
   - Caveats: caveats.md
   - ADRs:
@@ -12,4 +13,3 @@ nav:
       - Citation Retrieval: adr/0003-retrieval-only-citation.md
       - ChEMBL Licensing: adr/0004-chembl-not-drugbank.md
       - Dual Orchestrator: adr/0005-dual-orchestrator.md
-
