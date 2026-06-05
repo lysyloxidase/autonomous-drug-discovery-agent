@@ -18,3 +18,7 @@
     must remain speculative unless independently supported.
 16. Open Targets association scores are ranking heuristics, not causal
     probabilities.
+17. Target ranking weights are transparent prioritization heuristics and should
+    be sensitivity-tested for each disease program.
+18. Molecule triage covers known ChEMBL actives only; it is not de novo
+    generation, docking, or proof of efficacy.

@@ -7,6 +7,7 @@ nav:
   - Extraction: extraction.md
   - Knowledge Graph: kg.md
   - Evidence: evidence.md
+  - Ranking & Molecules: ranking-molecules.md
   - Real vs Mocked: real-vs-mocked.md
   - Caveats: caveats.md
   - ADRs:

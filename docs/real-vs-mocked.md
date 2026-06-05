@@ -19,3 +19,9 @@ be added with testcontainers once CI has Docker service support.
 Evidence tests use mocked Open Targets GraphQL responses. The production client
 uses the official Open Targets Platform GraphQL endpoint and the same parser
 paths covered by unit tests.
+
+Ranking tests use local candidate fixtures to verify score components, weight
+sensitivity, and known-target recovery. ChEMBL tests use fake Web Resource
+Client resources so the unit suite does not depend on live EBI availability.
+RDKit tests run real local descriptor, alert, fingerprint, and scaffold
+computations.

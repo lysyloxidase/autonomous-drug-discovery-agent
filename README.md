@@ -3,7 +3,8 @@
 Autonomous Drug Discovery Agent turns a disease name into a citation-grounded
 therapeutic-target research report. Phase 1 builds the retrieval foundation;
 Phase 2 adds entity extraction, ontology grounding, and honest relation-quality
-measurement.
+measurement. Later phases add a provenance-first KG, evidence tiering,
+transparent target ranking, and known-active molecule triage.
 
 > Research-only software. This project does not provide clinical advice,
 > diagnosis, treatment recommendations, or patient-specific decision support.
@@ -28,6 +29,9 @@ measurement.
 | GDS centrality | Implemented | PageRank, degree, betweenness normalized to 0-1 |
 | Open Targets evidence | Implemented | GraphQL associations, datatype scores, tractability |
 | Evidence tiering | Implemented | robust/plausible/speculative with co-occurrence forced speculative |
+| Target ranking | Implemented | transparent weighted centrality, Open Targets, druggability, genetics, novelty, safety |
+| ChEMBL molecule lookup | Implemented | known actives only, pChEMBL >= 5 binding assays |
+| RDKit molecule triage | Implemented | descriptors, Lipinski/Veber/QED, PAINS/Brenk, Tanimoto, Murcko scaffolds |
 
 ## Extraction Honesty Gate
 
@@ -46,6 +50,9 @@ responses and local cache backends so CI remains deterministic and does not
 consume API quotas. Extraction tests use BioC-shaped PubTator3 fixtures, fake
 scispaCy-like pipelines, and mocked Ollama responses. Later phases can add VCR
 cassettes for selected integration smoke tests without changing the interfaces.
+ChEMBL tests use fake client resources; RDKit tests run local chemistry
+descriptors. Molecule outputs are labeled known actives only, not de novo
+design and not docking.
 
 ## Quickstart
 
@@ -76,4 +83,7 @@ grounded `Entity` and typed `Relation` records, then supplements gaps with
 tagged scispaCy and local-LLM fallbacks. Phase 3 loads those records into Neo4j
 with required provenance on every edge and computes GDS centrality features for
 the ranking layer. Phase 4 grounds disease-target claims in Open Targets and
-writes explainable evidence tiers back to KG relationships.
+writes explainable evidence tiers back to KG relationships. Phase 5 combines
+centrality, Open Targets evidence, druggability, genetic support, novelty, and
+safety penalties into visible target scores, then triages ChEMBL known actives
+with RDKit.

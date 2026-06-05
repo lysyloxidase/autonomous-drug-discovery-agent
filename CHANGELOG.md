@@ -13,6 +13,8 @@ Semantic Versioning.
 - Phase 2 entity extraction and ontology grounding layer.
 - Phase 3 Neo4j knowledge graph and centrality layer.
 - Phase 4 Open Targets evidence grounding and tiering layer.
+- Phase 5 transparent target ranking and ChEMBL/RDKit known-active molecule
+  triage.
 - Async token-bucket rate limiting and transient HTTP retry helpers.
 - Disk and Redis cache adapters with async cache decorator.
 - Canonical `Publication` and `Corpus` Pydantic models.
@@ -30,4 +32,8 @@ Semantic Versioning.
 - Robust/plausible/speculative evidence tiering with co-occurrence forced
   speculative.
 - Neo4j evidence-tier writeback helper.
+- Multi-criteria target ranker with visible weighted component breakdowns.
+- ChEMBL known-active client scoped to pChEMBL-filtered binding assays.
+- RDKit molecule triage for descriptors, drug-likeness rules, alerts,
+  fingerprint similarity, and scaffold clustering.
 - Project docs, ADRs, Docker scaffolding, and quality tooling.

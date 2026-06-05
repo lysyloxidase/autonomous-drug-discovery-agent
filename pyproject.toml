@@ -10,6 +10,7 @@ authors = [
 ]
 keywords = ["drug-discovery", "pubmed", "openalex", "europe-pmc", "pubtator"]
 dependencies = [
+  "chembl-webresource-client>=0.10.9",
   "diskcache>=5.6.3",
   "graphdatascience>=1.11.0",
   "httpx>=0.27.0",
@@ -18,6 +19,7 @@ dependencies = [
   "pydantic>=2.7.0",
   "pydantic-settings>=2.2.1",
   "pyyaml>=6.0.1",
+  "rdkit>=2026.3.2",
   "redis>=5.0.3",
   "structlog>=24.1.0",
   "tenacity>=8.2.3",
@@ -71,11 +73,11 @@ ignore = ["UP047"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "--cov=adda.retrieval --cov=adda.extraction --cov=adda.evidence --cov=adda.kg --cov=adda.ratelimit --cov=adda.cache --cov-report=term-missing --cov-fail-under=85"
+addopts = "--cov=adda.retrieval --cov=adda.extraction --cov=adda.evidence --cov=adda.kg --cov=adda.ranking --cov=adda.molecules --cov=adda.ratelimit --cov=adda.cache --cov-report=term-missing --cov-fail-under=85"
 
 [tool.coverage.run]
 branch = true
-source = ["adda.retrieval", "adda.extraction", "adda.evidence", "adda.kg", "adda.ratelimit", "adda.cache"]
+source = ["adda.retrieval", "adda.extraction", "adda.evidence", "adda.kg", "adda.ranking", "adda.molecules", "adda.ratelimit", "adda.cache"]
 
 [tool.pyright]
 include = ["src", "tests"]
