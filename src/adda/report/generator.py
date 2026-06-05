@@ -86,6 +86,196 @@ def _component_summary(target: TargetScore) -> str:
     )
 
 
+def _citation_pmid(citation: str) -> str | None:
+    if citation.startswith("PMID:"):
+        return citation.removeprefix("PMID:")
+    return None
+
+
+def _disease_node_id(state: AgentState) -> str:
+    for entity in state.entities:
+        if entity.entity_type == "disease":
+            return entity.normalized_id
+    slug = "-".join(state.disease_query.lower().split())
+    return f"disease:{slug or 'query'}"
+
+
+def _add_graph_node(
+    nodes: dict[str, dict[str, Any]],
+    *,
+    node_id: str,
+    label: str,
+    node_type: str,
+    **properties: Any,
+) -> None:
+    existing = nodes.get(node_id, {})
+    nodes[node_id] = {
+        **existing,
+        "id": node_id,
+        "label": label,
+        "type": node_type,
+        **{key: value for key, value in properties.items() if value is not None},
+    }
+
+
+def _append_graph_edge(
+    edges: list[dict[str, Any]],
+    *,
+    source: str,
+    target: str,
+    relation: str,
+    **properties: Any,
+) -> None:
+    edge = {
+        "id": f"{source}|{relation}|{target}|{len(edges) + 1}",
+        "source": source,
+        "target": target,
+        "relation": relation,
+        **{key: value for key, value in properties.items() if value is not None},
+    }
+    edges.append(edge)
+
+
+def _knowledge_graph_payload(
+    state: AgentState,
+    *,
+    target_payloads: list[dict[str, Any]],
+    pmids: list[str],
+) -> dict[str, Any]:
+    nodes: dict[str, dict[str, Any]] = {}
+    edges: list[dict[str, Any]] = []
+    disease_id = _disease_node_id(state)
+    _add_graph_node(
+        nodes,
+        node_id=disease_id,
+        label=state.disease_query,
+        node_type="disease",
+        ontology=disease_id.split(":", maxsplit=1)[0] if ":" in disease_id else None,
+    )
+
+    for entity in state.entities:
+        _add_graph_node(
+            nodes,
+            node_id=entity.normalized_id,
+            label=entity.text,
+            node_type=entity.entity_type.value,
+            ontology=entity.ontology,
+            extractor=entity.extractor,
+            confidence=entity.confidence,
+            source_pmids=entity.source_pmids,
+        )
+
+    for relation in state.relations:
+        _add_graph_node(
+            nodes,
+            node_id=relation.subject.normalized_id,
+            label=relation.subject.text,
+            node_type=relation.subject.entity_type.value,
+            ontology=relation.subject.ontology,
+        )
+        _add_graph_node(
+            nodes,
+            node_id=relation.object.normalized_id,
+            label=relation.object.text,
+            node_type=relation.object.entity_type.value,
+            ontology=relation.object.ontology,
+        )
+        _append_graph_edge(
+            edges,
+            source=relation.subject.normalized_id,
+            target=relation.object.normalized_id,
+            relation=relation.relation.value.upper(),
+            source_pmids=relation.source_pmids,
+            source_db=relation.extractor,
+            extraction_confidence=relation.confidence,
+            cooccurrence_only=relation.is_cooccurrence_only,
+        )
+
+    for target in target_payloads:
+        target_id = str(target["target_id"])
+        _add_graph_node(
+            nodes,
+            node_id=target_id,
+            label=str(target["target_symbol"]),
+            node_type="gene",
+            evidence_tier=target["evidence_tier"],
+            composite_score=target["composite_score"],
+        )
+        citation = str(target.get("citation", ""))
+        cited_pmid = _citation_pmid(citation)
+        _append_graph_edge(
+            edges,
+            source=disease_id,
+            target=target_id,
+            relation="ASSOCIATED_WITH",
+            evidence_tier=target["evidence_tier"],
+            score=target["composite_score"],
+            source_pmids=[cited_pmid] if cited_pmid else [],
+            source_db="ranking",
+        )
+
+    for pmid in pmids:
+        publication_id = f"PMID:{pmid}"
+        _add_graph_node(
+            nodes,
+            node_id=publication_id,
+            label=publication_id,
+            node_type="publication",
+            pmid=pmid,
+        )
+        _append_graph_edge(
+            edges,
+            source=publication_id,
+            target=disease_id,
+            relation="MENTIONS",
+            source_pmids=[pmid],
+            source_db="retrieval",
+        )
+
+    for target in target_payloads:
+        target_id = str(target["target_id"])
+        cited_pmid = _citation_pmid(str(target.get("citation", "")))
+        if cited_pmid:
+            _append_graph_edge(
+                edges,
+                source=f"PMID:{cited_pmid}",
+                target=target_id,
+                relation="MENTIONS",
+                source_pmids=[cited_pmid],
+                source_db="retrieval",
+            )
+
+    for target_id, molecules in state.triaged_molecules.items():
+        if not isinstance(molecules, list):
+            continue
+        for molecule in molecules:
+            if not isinstance(molecule, dict):
+                continue
+            molecule_id = str(molecule.get("molecule_chembl_id", "molecule"))
+            _add_graph_node(
+                nodes,
+                node_id=molecule_id,
+                label=molecule_id,
+                node_type="compound",
+                scope_label=molecule.get("scope_label"),
+                qed=molecule.get("qed"),
+            )
+            _append_graph_edge(
+                edges,
+                source=molecule_id,
+                target=str(target_id),
+                relation="TARGETS",
+                source_db="chembl",
+                extraction_confidence=0.5,
+            )
+
+    return {
+        "nodes": list(nodes.values()),
+        "edges": edges,
+        "layout_hint": "disease_target_publication_molecule",
+    }
+
+
 class ReportGenerator:
     """Generate citation-grounded Markdown, HTML, PDF, and JSON reports."""
 
@@ -176,6 +366,12 @@ class ReportGenerator:
         json_payload = {
             "disease_query": state.disease_query,
             "targets": target_payloads,
+            "triaged_molecules": state.triaged_molecules,
+            "knowledge_graph": _knowledge_graph_payload(
+                state,
+                target_payloads=target_payloads,
+                pmids=pmids,
+            ),
             "validation_experiments": VALIDATION_EXPERIMENTS,
             "retrieved_pmids": pmids,
             "errors": state.errors,

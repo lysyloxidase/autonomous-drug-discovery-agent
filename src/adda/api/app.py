@@ -19,7 +19,13 @@ from typing import Any
 
 import httpx
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Query, Response
-from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    JSONResponse,
+    PlainTextResponse,
+)
+from fastapi.staticfiles import StaticFiles
 from neo4j import GraphDatabase
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
@@ -448,6 +454,12 @@ def create_app(job_manager: JobManager | None = None) -> FastAPI:
 
     manager = job_manager or JobManager()
     app = FastAPI(title="autonomous-drug-discovery-agent", version="1.0")
+    static_dir = Path(__file__).with_name("static")
+    app.mount("/assets", StaticFiles(directory=static_dir), name="assets")
+
+    @app.get("/", include_in_schema=False)
+    async def browser_app() -> FileResponse:
+        return FileResponse(static_dir / "index.html")
 
     @app.post("/jobs", response_model=JobSubmitResponse)
     async def submit_job(

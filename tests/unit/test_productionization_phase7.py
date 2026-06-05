@@ -16,7 +16,7 @@ def test_docker_compose_one_command_stack_declares_required_services() -> None:
     services = compose["services"]
 
     assert {"neo4j", "ollama", "redis", "api"} <= set(services)
-    assert services["api"]["ports"] == ["8000:8000"]
+    assert services["api"]["ports"] == ["${ADDA_API_PORT:-8001}:8000"]
     assert services["api"]["build"]["dockerfile"] == "docker/Dockerfile"
     assert services["api"]["environment"]["NEO4J_URI"] == "bolt://neo4j:7687"
     assert services["api"]["environment"]["OLLAMA_HOST"] == "http://ollama:11434"
@@ -25,6 +25,12 @@ def test_docker_compose_one_command_stack_declares_required_services() -> None:
     )
     assert services["api"]["environment"]["REDIS_URL"] == "redis://redis:6379/0"
     assert services["ollama"]["volumes"] == ["ollama_data:/root/.ollama"]
+    assert services["neo4j"]["ports"] == [
+        "${ADDA_NEO4J_HTTP_PORT:-7475}:7474",
+        "${ADDA_NEO4J_BOLT_PORT:-7688}:7687",
+    ]
+    assert services["ollama"]["ports"] == ["${ADDA_OLLAMA_PORT:-11435}:11434"]
+    assert services["redis"]["ports"] == ["${ADDA_REDIS_PORT:-6380}:6379"]
     assert "ollama_data" in compose["volumes"]
     assert "neo4j_data" in compose["volumes"]
 

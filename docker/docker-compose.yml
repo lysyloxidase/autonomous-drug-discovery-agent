@@ -6,22 +6,22 @@ services:
       NEO4J_PLUGINS: '["apoc","graph-data-science"]'
       NEO4J_dbms_security_procedures_unrestricted: apoc.*,gds.*
     ports:
-      - "7474:7474"
-      - "7687:7687"
+      - "${ADDA_NEO4J_HTTP_PORT:-7475}:7474"
+      - "${ADDA_NEO4J_BOLT_PORT:-7688}:7687"
     volumes:
       - neo4j_data:/data
 
   ollama:
     image: ollama/ollama:latest
     ports:
-      - "11434:11434"
+      - "${ADDA_OLLAMA_PORT:-11435}:11434"
     volumes:
       - ollama_data:/root/.ollama
 
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "${ADDA_REDIS_PORT:-6380}:6379"
 
   api:
     build:
@@ -40,7 +40,7 @@ services:
       ADDA_PULL_OLLAMA: ${ADDA_PULL_OLLAMA:-1}
       REDIS_URL: redis://redis:6379/0
     ports:
-      - "8000:8000"
+      - "${ADDA_API_PORT:-8001}:8000"
 
 volumes:
   neo4j_data:

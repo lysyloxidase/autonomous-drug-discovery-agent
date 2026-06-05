@@ -1,80 +1,110 @@
 # autonomous-drug-discovery-agent
 
-An autonomous AI agent that takes a disease name and produces a
-citation-grounded, evidence-tiered therapeutic-target report by combining
-literature retrieval, PubTator3/Open Targets/ChEMBL grounding, a Neo4j knowledge
-graph, transparent target ranking, and RDKit molecule triage. The report layer
-runs with local LLM infrastructure through Ollama, so there is no hosted LLM API
-cost.
+Autonomous Drug Discovery Agent is a local, research-only system for generating
+therapeutic-target hypotheses from a disease query. It combines biomedical
+literature retrieval, entity extraction, ontology grounding, a Neo4j knowledge
+graph, Open Targets evidence tiering, transparent target ranking, ChEMBL/RDKit
+molecule triage, and citation-checked reports.
+
+Author: `lysyloxidase`
 
 WARNING: Research-hypothesis-generating only. NOT clinical advice. NOT a
-substitute for validated drug discovery.
+substitute for validated drug discovery, medical review, medicinal chemistry,
+toxicology, clinical trials, or regulatory assessment.
+
+## What It Does
+
+Given a disease name, the agent runs a typed pipeline:
+
+`plan->retrieve->extract->build_kg->score_evidence->rank_targets->triage_molecules->write_report->verify_citations`
+
+It produces:
+
+- a ranked therapeutic-target table
+- robust, plausible, or speculative evidence tiers
+- a visual disease-target-publication-molecule knowledge graph
+- ontology-grounded entities and provenance-bearing relations
+- ChEMBL known-active molecule triage
+- Markdown, HTML, PDF, and JSON reports
+- citation verification against the retrieved evidence set
 
 ## Quickstart (one command)
 
 ```bash
 git clone https://github.com/lysyloxidase/autonomous-drug-discovery-agent
 cd autonomous-drug-discovery-agent
-docker compose -f docker/docker-compose.yml up
+docker compose -f docker/docker-compose.yml up --build
 ```
 
-Open `http://localhost:8000/docs`, `POST /jobs` with a disease, then watch
-`GET /jobs/{job_id}/stream` for step-by-step SSE progress. The compose stack
-starts Neo4j with APOC/GDS, Ollama, Redis, and the FastAPI service. Local LLM +
-Neo4j are the heavy consumers; plan for at least 16 GB RAM for a comfortable
-demo and more for real workloads. The API entrypoint asks Ollama to pull
-`qwen2.5:7b` on first run.
+Open the local research console:
 
-## [DEMO GIF HERE]
+```text
+http://localhost:8001/
+```
 
-Demo target: idiopathic pulmonary fibrosis.
+Swagger/OpenAPI remains available at:
+
+```text
+http://localhost:8001/docs
+```
+
+Default Docker Compose ports:
+
+| Service | URL / Port | Notes |
+| --- | --- | --- |
+| FastAPI dashboard/API | `http://localhost:8001/` | Main local browser app |
+| Neo4j Browser | `http://localhost:7475` | Login: `neo4j` / `addadev123` |
+| Neo4j Bolt | `7688` | Used by the API container |
+| Ollama | `11435` | Local LLM service |
+| Redis | `6380` | Cache/runtime support |
+
+Override ports with `ADDA_API_PORT`, `ADDA_NEO4J_HTTP_PORT`,
+`ADDA_NEO4J_BOLT_PORT`, `ADDA_OLLAMA_PORT`, and `ADDA_REDIS_PORT`.
+
+By default, the API entrypoint asks Ollama to pull `qwen2.5:7b`. To skip the
+model pull for a fast demo:
 
 ```bash
-make demo
+ADDA_PULL_OLLAMA=0 docker compose -f docker/docker-compose.yml up --build
 ```
 
-Example report outputs are available from:
+## Local Browser App
 
-- `GET /jobs/{job_id}/result?format=markdown`
-- `GET /jobs/{job_id}/result?format=html`
-- `GET /jobs/{job_id}/result?format=pdf`
-- `GET /jobs/{job_id}/result?format=json`
+The dashboard at `http://localhost:8001/` covers the whole project:
 
-## Results table
+- disease query form
+- streaming pipeline progress
+- therapeutic target ranking
+- selected target details
+- evidence and honesty gates
+- visual knowledge graph
+- extraction, grounding, and KG metrics
+- known molecule triage
+- citation verification
+- report downloads
+- runtime service health
 
-| Disease | Pubs (PubMed/EuropePMC/OpenAlex/PubTator3) | Unique entities | KG nodes | KG relations | Top-5 targets (tier) | Runtime (cold/cached) | Extraction P/R vs PubTator3 | Citation accuracy | Model / HW |
-|---|---:|---:|---:|---:|---|---|---|---:|---|
-| IPF demo fixture | 3/3/3/3 | 6 | 7 | 5 | MUC5B (robust), TGFB1 (robust), MMP7 (plausible), TERT (plausible), SFTPC (plausible) | <1 min / <10 sec | 0.667 / 1.000 | 100.00% | qwen2.5:7b / local CPU demo |
-| glioblastoma | pending live run | pending | pending | pending | pending | pending | pending | pending | pending |
-| TNBC | pending live run | pending | pending | pending | pending | pending | pending | pending | pending |
-| endometriosis | pending live run | pending | pending | pending | pending | pending | pending | pending | pending |
+Demo disease:
 
-The IPF row is the committed golden disease fixture used by CI. Live runs can
-replace the pending rows when API quotas, model hardware, and Neo4j are
-available.
+```text
+idiopathic pulmonary fibrosis
+```
 
-## What is real vs mocked
+Expected golden-demo output:
 
-REAL and verifiable in runtime code: PubMed/OpenAlex/Europe PMC retrieval,
-PubTator3 entity and relation annotation parsing, ChEMBL bioactivity lookup,
-Open Targets scores, RDKit property calculation, Neo4j KG loading, Graph Data
-Science centrality wrappers, and citation existence/retrieval-set verification.
-
-Mocked or fixture-backed in CI: external API responses, Neo4j/GDS clients,
-ChEMBL Web Resource Client rows, and the golden end-to-end FastAPI job. CI never
-hits live APIs by default; optional live integration is `workflow_dispatch`
-only.
-
-WEAK and flagged: local-LLM relation extraction quality, the
-co-occurrence-to-causation leap, and clinical relevance. LLM-only or
-co-occurrence-only relations are forced to `speculative`. NO docking. NO de novo
-design.
+| Metric | Expected value |
+| --- | --- |
+| Top target | `MUC5B` |
+| Target count | `5` |
+| KG size | `7 nodes / 5 relations` in the demo KG metrics |
+| Visual graph | disease, gene, publication, compound nodes |
+| Citation accuracy | `1.0` |
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  Q[Disease query] --> API[FastAPI job API]
+  Q[Disease query] --> API[FastAPI job API + browser UI]
   API --> A[Dual orchestrator]
   A --> R[retrieve]
   R --> X[extract]
@@ -99,36 +129,81 @@ flowchart TB
   M --> RD[RDKit triage]
   T --> REP[Citation-grounded report]
   RD --> REP
+  REP --> UI[Local dashboard + visual KG]
 ```
-
-Agent flow:
-
-`plan->retrieve->extract->build_kg->score_evidence->rank_targets->triage_molecules->write_report->verify_citations`
-
-## Agentic vs orchestrated
-
-This is mostly a deterministic DAG, which is good engineering for a scientific
-evidence pipeline. The genuinely agentic sub-steps are query reformulation,
-relation extraction, and report synthesis. Evidence handling, citation
-verification, target ranking, and molecule triage stay typed, inspectable, and
-testable.
 
 ## Scope
 
 | Capability | Status | Notes |
 | --- | --- | --- |
-| PubMed / Europe PMC / OpenAlex retrieval | Implemented | Live clients with cache and graceful degradation |
+| PubMed / Europe PMC / OpenAlex retrieval | Implemented | Live clients with caching and graceful degradation |
 | PubTator3 extraction backbone | Implemented | BioC entities and typed relations |
-| scispaCy + local LLM fallback | Implemented | Tagged and measured; LLM-only remains speculative |
-| Neo4j KG | Implemented | APOC loading, provenance on every edge, GDS centrality |
-| Open Targets evidence tiering | Implemented | Robust/plausible/speculative |
+| scispaCy fallback | Implemented | Clearly tagged as fallback extraction |
+| Local-LLM relation extraction | Implemented | Constrained JSON; LLM-only edges remain speculative |
+| Ontology grounding | Implemented | NCBI Gene, MeSH, ChEBI, dbSNP, EFO-style IDs |
+| Neo4j KG | Implemented | APOC loading, provenance properties, GDS centrality wrappers |
+| Open Targets evidence tiering | Implemented | Robust/plausible/speculative classification |
 | Target ranking | Implemented | Transparent weighted components |
-| ChEMBL/RDKit molecule triage | Implemented | Known actives only |
-| Dual orchestrator | Implemented | Custom state machine and LangGraph parity |
+| ChEMBL/RDKit molecule triage | Implemented | Known actives only; no de novo design |
 | FastAPI streaming jobs | Implemented | Submit, SSE stream, status, result, health |
-| CI | Implemented | Ruff, Pyright, pytest with cassettes/fixtures, Docker build |
+| Local browser dashboard | Implemented | Includes visual knowledge graph |
+| CI | Implemented | Ruff, Pyright, pytest, coverage, Docker build |
 
-## Honesty gates
+## Evidence Tiers
+
+| Tier | Meaning |
+| --- | --- |
+| `robust` | Human genetics, known indication drug, or replicated independent evidence |
+| `plausible` | Mechanistic typed literature, pathway, expression, or animal model support |
+| `speculative` | Co-occurrence only, single source, or unverified local-LLM relation |
+
+Hard honesty rule: literature co-occurrence is not causation. LLM-only or
+co-occurrence-only relations are always marked `speculative`.
+
+## Results table
+
+| Disease | Pubs (PubMed/EuropePMC/OpenAlex/PubTator3) | Unique entities | KG nodes | KG relations | Top-5 targets (tier) | Runtime (cold/cached) | Extraction P/R vs PubTator3 | Citation accuracy | Model / HW |
+|---|---:|---:|---:|---:|---|---|---|---:|---|
+| IPF demo fixture | 3/3/3/3 | 6 | 7 | 5 | MUC5B (robust), TGFB1 (robust), MMP7 (plausible), TERT (plausible), SFTPC (plausible) | <1 min / <10 sec | 0.667 / 1.000 | 100.00% | qwen2.5:7b / local CPU demo |
+| glioblastoma | pending live run | pending | pending | pending | pending | pending | pending | pending | pending |
+| TNBC | pending live run | pending | pending | pending | pending | pending | pending | pending | pending |
+| endometriosis | pending live run | pending | pending | pending | pending | pending | pending | pending | pending |
+
+The IPF row is the committed golden disease fixture used by CI. Live rows should
+be filled only after API quota, model hardware, and Neo4j are available.
+
+## What is real vs mocked
+
+REAL and implemented in runtime code:
+
+- PubMed, Europe PMC, OpenAlex retrieval clients
+- PubTator3 annotation parsing
+- entity/relation models
+- ontology grounding cache
+- Open Targets GraphQL client
+- harmonic-style evidence aggregation
+- robust/plausible/speculative tiering
+- Neo4j schema, loader, and GDS centrality wrappers
+- ChEMBL client and RDKit molecule triage
+- FastAPI job API, SSE streaming, and local dashboard
+- citation verification against retrieved PMIDs
+
+Mocked or fixture-backed in CI:
+
+- external API responses
+- Neo4j/GDS clients
+- ChEMBL web resource rows
+- the golden end-to-end FastAPI job
+
+Weak and explicitly flagged:
+
+- local-LLM relation extraction quality
+- co-occurrence-to-causation risk
+- clinical relevance
+
+NO docking. NO de novo design. NO clinical recommendation.
+
+## Honesty Gates
 
 Extraction smoke fixture:
 
@@ -136,11 +211,42 @@ Extraction smoke fixture:
 | --- | ---: | ---: | ---: | ---: | --- |
 | BioRED smoke subset | 0.6667 | 1.0000 | 0.5000 | 1.0000 | Small committed fixture; not full benchmark performance |
 
-Citation gate:
+Citation accuracy gate:
 
 | Evaluation | Citation accuracy | Threshold | Notes |
 | --- | ---: | ---: | --- |
 | Golden disease fixture | 1.0000 | 0.9500 | Report cites only retrieved PMIDs; invented PMIDs are stripped |
+
+## API
+
+Submit a job:
+
+```bash
+curl -X POST http://localhost:8001/jobs \
+  -H "content-type: application/json" \
+  -d '{"disease":"idiopathic pulmonary fibrosis"}'
+```
+
+Check status:
+
+```bash
+curl http://localhost:8001/jobs/<job_id>/status
+```
+
+Stream progress:
+
+```bash
+curl http://localhost:8001/jobs/<job_id>/stream
+```
+
+Get reports:
+
+```bash
+curl "http://localhost:8001/jobs/<job_id>/result?format=json"
+curl "http://localhost:8001/jobs/<job_id>/result?format=markdown"
+curl "http://localhost:8001/jobs/<job_id>/result?format=html"
+curl "http://localhost:8001/jobs/<job_id>/result?format=pdf"
+```
 
 ## Development
 
@@ -151,6 +257,50 @@ make up
 make docs
 ```
 
+Equivalent checks:
+
+```bash
+uv run ruff check .
+uv run ruff format --check .
+uv run pyright
+uv run pytest
+```
+
+## Configuration
+
 OpenAlex requires `OPENALEX_API_KEY` for normal live retrieval. PubMed works
 without `NCBI_API_KEY`, but the key raises the rate limit from 3 requests/sec to
 10 requests/sec.
+
+Useful runtime variables:
+
+| Variable | Purpose |
+| --- | --- |
+| `ADDA_PULL_OLLAMA` | Set to `0` to skip pulling the local LLM model |
+| `OLLAMA_MODEL` | Default local model is `qwen2.5:7b` |
+| `NEO4J_URI` | Bolt URI inside the container network |
+| `NEO4J_USER` / `NEO4J_PASSWORD` | Neo4j credentials |
+| `REDIS_URL` | Redis connection string |
+
+## Security and Safety
+
+- Do not commit API keys, credentials, private data, or proprietary evidence.
+- Unit tests must use mocks or scrubbed cassettes.
+- Reports must keep the research-only disclaimer visible.
+- Outputs should be treated as hypotheses for expert review, not conclusions.
+
+## Agentic vs orchestrated
+
+This is mostly a deterministic DAG, which is good engineering for a scientific
+evidence pipeline. The genuinely agentic sub-steps are query reformulation,
+relation extraction, and report synthesis. Evidence handling, citation
+verification, target ranking, and molecule triage stay typed, inspectable, and
+testable.
+
+## License
+
+Apache-2.0. See [LICENSE](LICENSE).
+
+## [DEMO GIF HERE]
+
+A short demo GIF can be added here after recording the local dashboard flow.

@@ -57,6 +57,11 @@ def state_with_targets() -> AgentState:
         disease_query="glioblastoma",
         corpus=corpus(),
         target_scores=[target_score(index) for index in range(1, 7)],
+        triaged_molecules={
+            "ENSG00000000001": [
+                {"molecule_chembl_id": "CHEMBL1", "scope_label": "known actives only"}
+            ]
+        },
     )
     state.refresh_retrieved_identifiers()
     return state
@@ -69,6 +74,15 @@ def test_report_generator_outputs_four_formats_and_top_five_targets() -> None:
     assert state.report_html is not None
     assert state.report_pdf is not None
     assert state.report_json["targets"][0]["target_symbol"] == "TARGET1"
+    assert state.report_json["triaged_molecules"]["ENSG00000000001"][0][
+        "molecule_chembl_id"
+    ] == "CHEMBL1"
+    graph = state.report_json["knowledge_graph"]
+    assert {"nodes", "edges"} <= set(graph)
+    assert any(node["type"] == "disease" for node in graph["nodes"])
+    assert any(node["id"] == "CHEMBL1" for node in graph["nodes"])
+    assert any(edge["relation"] == "ASSOCIATED_WITH" for edge in graph["edges"])
+    assert any(edge["relation"] == "TARGETS" for edge in graph["edges"])
     assert len(state.report_json["targets"]) == 5
     assert state.report_pdf.startswith(b"%PDF")
     assert "Evidence tier" in state.report_markdown

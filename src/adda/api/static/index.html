@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ADDA Research Console</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Autonomous Drug Discovery Agent</p>
+          <h1>Therapeutic target research console</h1>
+        </div>
+        <div class="topbar-actions">
+          <a class="plain-link" href="/docs">API docs</a>
+          <div class="system-status" id="system-status">
+            <span class="status-dot"></span>
+            <span>Checking</span>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section class="query-band" aria-label="Disease query">
+          <form id="search-form" class="query-form">
+            <label for="disease-input">Disease</label>
+            <div class="query-row">
+              <input
+                id="disease-input"
+                name="disease"
+                type="search"
+                autocomplete="off"
+                value="idiopathic pulmonary fibrosis"
+                placeholder="e.g. idiopathic pulmonary fibrosis"
+              />
+              <button type="submit" id="run-button">Run target discovery</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="summary-strip" aria-label="Run summary">
+          <div class="summary-item">
+            <span class="summary-label">Job</span>
+            <strong id="job-status">idle</strong>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Top target</span>
+            <strong id="top-target">--</strong>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Citation accuracy</span>
+            <strong id="citation-accuracy">--</strong>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">KG size</span>
+            <strong id="kg-size">--</strong>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Extraction P/R</span>
+            <strong id="extraction-metric">--</strong>
+          </div>
+        </section>
+
+        <section class="workspace">
+          <aside class="pipeline-panel" aria-label="Pipeline progress">
+            <div class="panel-heading">
+              <div>
+                <h2>Pipeline</h2>
+                <p id="pipeline-subtitle">No active run.</p>
+              </div>
+            </div>
+            <ol class="steps" id="steps"></ol>
+            <div class="report-actions">
+              <a id="report-json" class="ghost-link disabled" href="#">JSON</a>
+              <a id="report-md" class="ghost-link disabled" href="#">Markdown</a>
+              <a id="report-pdf" class="ghost-link disabled" href="#">PDF</a>
+            </div>
+          </aside>
+
+          <section class="results-panel" aria-label="Target ranking">
+            <div class="panel-heading">
+              <div>
+                <h2>Therapeutic target ranking</h2>
+                <p id="result-subtitle">Run a disease query to populate results.</p>
+              </div>
+              <span id="result-count" class="metric-pill">0 targets</span>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Target</th>
+                    <th>Tier</th>
+                    <th>Composite</th>
+                    <th>Genetic</th>
+                    <th>Druggability</th>
+                    <th>Citation</th>
+                  </tr>
+                </thead>
+                <tbody id="targets-body">
+                  <tr>
+                    <td colspan="7" class="empty-cell">No target run yet.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <aside class="detail-panel" aria-label="Selected target details">
+            <div class="panel-heading">
+              <div>
+                <h2>Target detail</h2>
+                <p>Evidence components and next experiments.</p>
+              </div>
+            </div>
+            <div id="target-detail" class="target-detail empty-detail">
+              Select a ranked target.
+            </div>
+          </aside>
+        </section>
+
+        <section class="graph-panel" aria-label="Knowledge graph">
+          <div class="panel-heading">
+            <div>
+              <h2>Knowledge graph</h2>
+              <p>
+                Disease, target, publication, and molecule nodes derived from
+                the report payload and provenance-bearing pipeline state.
+              </p>
+            </div>
+            <span id="graph-count" class="metric-pill">0 nodes / 0 edges</span>
+          </div>
+          <div class="graph-layout">
+            <div class="graph-canvas-wrap">
+              <svg
+                id="kg-graph"
+                class="graph-canvas"
+                viewBox="0 0 920 520"
+                role="img"
+                aria-label="Knowledge graph visualization"
+              ></svg>
+            </div>
+            <aside class="graph-side">
+              <div class="graph-legend" id="graph-legend"></div>
+              <div class="graph-edge-list" id="graph-edge-list">
+                Run a target discovery job to render graph edges.
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="insight-grid" aria-label="Project outputs">
+          <section class="insight-panel" aria-label="Evidence and honesty gates">
+            <div class="panel-heading">
+              <div>
+                <h2>Evidence and honesty gates</h2>
+                <p>Open Targets grounding plus conservative tiering.</p>
+              </div>
+            </div>
+            <div class="tier-grid">
+              <div>
+                <span class="tier robust">robust</span>
+                <p>Human genetics, known indication drug, or replicated datatypes.</p>
+              </div>
+              <div>
+                <span class="tier plausible">plausible</span>
+                <p>Mechanistic literature, pathway, expression, or animal support.</p>
+              </div>
+              <div>
+                <span class="tier speculative">speculative</span>
+                <p>Co-occurrence or unverified local-LLM relations.</p>
+              </div>
+            </div>
+            <div class="key-value-list" id="evidence-list"></div>
+          </section>
+
+          <section class="insight-panel" aria-label="Knowledge graph and extraction">
+            <div class="panel-heading">
+              <div>
+                <h2>Extraction, grounding, and KG</h2>
+                <p>PubTator3 backbone, ontology IDs, Neo4j, APOC, and GDS.</p>
+              </div>
+            </div>
+            <div class="metric-grid" id="kg-metrics"></div>
+            <div class="coverage-map" id="coverage-map"></div>
+          </section>
+
+          <section class="insight-panel" aria-label="Molecule triage">
+            <div class="panel-heading">
+              <div>
+                <h2>Known molecule triage</h2>
+                <p>ChEMBL known actives only, scoped with RDKit-style filters.</p>
+              </div>
+            </div>
+            <div id="molecule-list" class="molecule-list empty-detail">
+              Run a target discovery job to see molecule triage.
+            </div>
+          </section>
+
+          <section class="insight-panel" aria-label="Citations and reports">
+            <div class="panel-heading">
+              <div>
+                <h2>Citations and reports</h2>
+                <p>Retrieved-only citations with Markdown, PDF, HTML, and JSON output.</p>
+              </div>
+            </div>
+            <div id="citation-list" class="citation-list empty-detail">
+              No verified citations yet.
+            </div>
+          </section>
+        </section>
+
+        <section class="system-panel" aria-label="Runtime services">
+          <div class="panel-heading">
+            <div>
+              <h2>Local runtime</h2>
+              <p>FastAPI, Neo4j, Ollama, Redis, and deterministic demo fixtures.</p>
+            </div>
+          </div>
+          <div class="service-grid" id="service-grid"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/assets/app.js" defer></script>
+  </body>
+</html>

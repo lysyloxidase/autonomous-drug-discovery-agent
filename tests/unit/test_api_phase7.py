@@ -54,6 +54,7 @@ def test_submit_status_stream_and_result_formats(client: TestClient) -> None:
     assert "text/html" in html_result.headers["content-type"]
     assert pdf_result.content.startswith(b"%PDF")
     assert pdf_result.headers["content-type"] == "application/pdf"
+    assert "triaged_molecules" in json_result.json()["report"]
 
 
 def test_result_before_completion_returns_conflict(tmp_path: Path) -> None:
@@ -94,3 +95,20 @@ def test_health_reports_component_statuses(monkeypatch: pytest.MonkeyPatch) -> N
     assert response.json()["status"] == "ok"
     assert response.json()["components"]["neo4j"]["ok"] is True
     assert response.json()["components"]["ollama"]["ok"] is True
+
+
+def test_browser_app_serves_target_discovery_ui(client: TestClient) -> None:
+    response = client.get("/")
+    script = client.get("/assets/app.js")
+    styles = client.get("/assets/styles.css")
+
+    assert response.status_code == 200
+    assert "Therapeutic target research console" in response.text
+    assert "Knowledge graph" in response.text
+    assert "/assets/app.js" in response.text
+    assert script.status_code == 200
+    assert "renderKnowledgeGraph" in script.text
+    assert "renderEvidence" in script.text
+    assert styles.status_code == 200
+    assert ".graph-panel" in styles.text
+    assert ".insight-grid" in styles.text
