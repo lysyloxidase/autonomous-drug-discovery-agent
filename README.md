@@ -6,8 +6,6 @@ literature retrieval, entity extraction, ontology grounding, a Neo4j knowledge
 graph, Open Targets evidence tiering, transparent target ranking, ChEMBL/RDKit
 molecule triage, and citation-checked reports.
 
-Author: `lysyloxidase`
-
 WARNING: Research-hypothesis-generating only. NOT clinical advice. NOT a
 substitute for validated drug discovery, medical review, medicinal chemistry,
 toxicology, clinical trials, or regulatory assessment.
