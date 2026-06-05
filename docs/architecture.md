@@ -25,6 +25,8 @@ flowchart LR
   EV --> R
   R --> CH[ChEMBL known actives]
   CH --> RD[RDKit triage]
+  RD --> REP[Retrieval-only report]
+  REP --> VC[Verify citations]
 ```
 
 Each source has its own token bucket. Source failures are isolated so one
@@ -47,3 +49,8 @@ Phase 5 ranks targets with user-adjustable weights and keeps every score
 component visible. Molecule triage is deliberately scoped to ChEMBL known
 actives and RDKit property/filter analysis; it is not de novo design, docking,
 or a clinical recommendation engine.
+
+Phase 6 wraps the deterministic pipeline in two orchestrators: a custom
+checkpointed state machine and a LangGraph graph with SQLite checkpointing. The
+LLM-like synthesis boundary is constrained by retrieval-only citations and a
+post-hoc citation-accuracy gate.

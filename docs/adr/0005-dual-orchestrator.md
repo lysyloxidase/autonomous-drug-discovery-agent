@@ -11,12 +11,20 @@ planning.
 
 ## Decision
 
-Use a deterministic pipeline for retrieval, dedupe, extraction, and ranking;
-allow an agentic orchestrator to plan retries, evidence gap checks, and report
-composition around those deterministic tools.
+Use a deterministic pipeline for retrieval, dedupe, extraction, KG loading,
+evidence scoring, ranking, molecule triage, report writing, and citation
+verification. Maintain two equivalent orchestrators:
+
+- a custom Pydantic-state machine with retry, checkpoint/resume, degraded
+  continuation, and streaming events
+- a LangGraph graph with the same nodes and SQLite checkpointing
+
+Be explicit that the pipeline is mostly a deterministic DAG. The genuinely
+agentic parts are query reformulation, relation extraction, and report
+synthesis.
 
 ## Consequences
 
 Core evidence handling stays testable while still allowing autonomous behavior
-where it adds value.
-
+where it adds value. The parity test keeps the custom and LangGraph
+implementations from drifting.

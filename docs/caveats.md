@@ -22,3 +22,7 @@
     be sensitivity-tested for each disease program.
 18. Molecule triage covers known ChEMBL actives only; it is not de novo
     generation, docking, or proof of efficacy.
+19. Orchestration is mostly a deterministic DAG; only query reformulation,
+    relation extraction, and report synthesis are genuinely agentic.
+20. Citation verification can prove that a citation was retrieved and accepted,
+    not that the cited study fully supports every downstream interpretation.

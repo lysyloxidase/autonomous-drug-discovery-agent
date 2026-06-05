@@ -25,3 +25,8 @@ sensitivity, and known-target recovery. ChEMBL tests use fake Web Resource
 Client resources so the unit suite does not depend on live EBI availability.
 RDKit tests run real local descriptor, alert, fingerprint, and scaffold
 computations.
+
+Orchestrator tests use deterministic fake tools for retrieval, extraction, KG,
+evidence, ranking, and triage. This exercises retries, checkpoint/resume,
+streaming, LangGraph parity, and citation verification without calling live
+services or LLMs.

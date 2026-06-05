@@ -15,6 +15,7 @@ Semantic Versioning.
 - Phase 4 Open Targets evidence grounding and tiering layer.
 - Phase 5 transparent target ranking and ChEMBL/RDKit known-active molecule
   triage.
+- Phase 6 dual orchestrator and retrieval-only citation-grounded report layer.
 - Async token-bucket rate limiting and transient HTTP retry helpers.
 - Disk and Redis cache adapters with async cache decorator.
 - Canonical `Publication` and `Corpus` Pydantic models.
@@ -36,4 +37,10 @@ Semantic Versioning.
 - ChEMBL known-active client scoped to pChEMBL-filtered binding assays.
 - RDKit molecule triage for descriptors, drug-likeness rules, alerts,
   fingerprint similarity, and scaffold clustering.
+- Custom checkpointed orchestrator with retries, resume, degraded continuation,
+  and streaming progress events.
+- LangGraph orchestrator with SQLite checkpointing and custom-orchestrator
+  parity coverage.
+- Markdown, HTML, PDF, and JSON report generation with retrieval-only citations.
+- Post-hoc PMID/DOI citation verification and citation-accuracy gate.
 - Project docs, ADRs, Docker scaffolding, and quality tooling.

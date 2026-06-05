@@ -4,7 +4,8 @@ Autonomous Drug Discovery Agent turns a disease name into a citation-grounded
 therapeutic-target research report. Phase 1 builds the retrieval foundation;
 Phase 2 adds entity extraction, ontology grounding, and honest relation-quality
 measurement. Later phases add a provenance-first KG, evidence tiering,
-transparent target ranking, and known-active molecule triage.
+transparent target ranking, known-active molecule triage, dual orchestration,
+and retrieval-only cited reports.
 
 > Research-only software. This project does not provide clinical advice,
 > diagnosis, treatment recommendations, or patient-specific decision support.
@@ -32,6 +33,10 @@ transparent target ranking, and known-active molecule triage.
 | Target ranking | Implemented | transparent weighted centrality, Open Targets, druggability, genetics, novelty, safety |
 | ChEMBL molecule lookup | Implemented | known actives only, pChEMBL >= 5 binding assays |
 | RDKit molecule triage | Implemented | descriptors, Lipinski/Veber/QED, PAINS/Brenk, Tanimoto, Murcko scaffolds |
+| Custom orchestrator | Implemented | deterministic DAG, retries, checkpoints, resume, streaming events |
+| LangGraph orchestrator | Implemented | same nodes with SQLite checkpointing and parity test |
+| Citation-grounded reports | Implemented | Markdown, HTML, PDF, JSON with retrieval-only citations |
+| Citation verification | Implemented | post-hoc PMID/DOI verification and accuracy metric |
 
 ## Extraction Honesty Gate
 
@@ -43,6 +48,16 @@ LLM-derived relations without database support are always tagged
 `is_cooccurrence_only=true`. Later evidence ranking must force those relations
 to the SPECULATIVE tier.
 
+## Citation Honesty Gate
+
+| Evaluation | Citation accuracy | Threshold | Notes |
+| --- | ---: | ---: | --- |
+| Golden disease fixture | 1.0000 | 0.9500 | Report cites only retrieved PMIDs; invented PMIDs are stripped |
+
+The report layer may cite only PMIDs/DOIs present in the retrieved evidence set.
+Post-hoc verification rejects citations that are not both verifiable and
+retrieved.
+
 ## Real vs Mocked
 
 Runtime clients call public literature APIs directly. Tests use mocked HTTP
@@ -52,7 +67,8 @@ scispaCy-like pipelines, and mocked Ollama responses. Later phases can add VCR
 cassettes for selected integration smoke tests without changing the interfaces.
 ChEMBL tests use fake client resources; RDKit tests run local chemistry
 descriptors. Molecule outputs are labeled known actives only, not de novo
-design and not docking.
+design and not docking. Orchestrator tests use deterministic fake tools so
+custom and LangGraph runs can be compared exactly.
 
 ## Quickstart
 
@@ -86,4 +102,6 @@ the ranking layer. Phase 4 grounds disease-target claims in Open Targets and
 writes explainable evidence tiers back to KG relationships. Phase 5 combines
 centrality, Open Targets evidence, druggability, genetic support, novelty, and
 safety penalties into visible target scores, then triages ChEMBL known actives
-with RDKit.
+with RDKit. Phase 6 runs the same agent pipeline through both a custom
+checkpointed state machine and LangGraph, then writes retrieval-only cited
+reports with post-hoc citation verification.
