@@ -101,10 +101,13 @@ The dashboard at `http://localhost:8001/` covers the whole project:
 - report downloads
 - runtime service health
 
-Demo disease:
+Demo diseases available in the local browser:
 
 ```text
 idiopathic pulmonary fibrosis
+glioblastoma
+TNBC
+endometriosis
 ```
 
 Expected golden-demo output:
@@ -113,7 +116,7 @@ Expected golden-demo output:
 | --- | --- |
 | Top target | `MUC5B` |
 | Target count | `5` |
-| KG size | `7 nodes / 5 relations` in the demo KG metrics |
+| KG size | `10 nodes / 14 relations` in the demo KG metrics |
 | Visual graph | disease, gene, publication, compound nodes |
 | Citation accuracy | `1.0` |
 
@@ -181,13 +184,16 @@ co-occurrence-only relations are always marked `speculative`.
 
 | Disease | Pubs (PubMed/EuropePMC/OpenAlex/PubTator3) | Unique entities | KG nodes | KG relations | Top-5 targets (tier) | Runtime (cold/cached) | Extraction P/R vs PubTator3 | Citation accuracy | Model / HW |
 |---|---:|---:|---:|---:|---|---|---|---:|---|
-| IPF demo fixture | 3/3/3/3 | 6 | 7 | 5 | MUC5B (robust), TGFB1 (robust), MMP7 (plausible), TERT (plausible), SFTPC (plausible) | <1 min / <10 sec | 0.667 / 1.000 | 100.00% | qwen2.5:7b / local CPU demo |
-| glioblastoma | pending live run | pending | pending | pending | pending | pending | pending | pending | pending |
-| TNBC | pending live run | pending | pending | pending | pending | pending | pending | pending | pending |
-| endometriosis | pending live run | pending | pending | pending | pending | pending | pending | pending | pending |
+| IPF demo fixture | 3/3/3/3 | 6 | 10 | 14 | MUC5B (robust), TGFB1 (robust), MMP7 (plausible), TERT (plausible), SFTPC (plausible) | <1 min / <10 sec | 0.667 / 1.000 | 100.00% | deterministic local fixture |
+| glioblastoma demo fixture | 5/5/5/5 | 6 | 14 | 18 | EGFR (robust), MGMT (robust), IDH1 (robust), TERT (plausible), PDGFRA (plausible) | <1 min / <10 sec | 0.648 / 0.923 | 100.00% | deterministic local fixture |
+| TNBC demo fixture | 4/4/4/4 | 6 | 13 | 17 | BRCA1 (robust), PARP1 (robust), CD274 (robust), EGFR (plausible), AR (plausible) | <1 min / <10 sec | 0.641 / 0.909 | 100.00% | deterministic local fixture |
+| endometriosis demo fixture | 4/4/4/4 | 6 | 13 | 17 | ESR1 (robust), PGR (plausible), VEGFA (plausible), PTGS2 (plausible), IL6 (plausible) | <1 min / <10 sec | 0.612 / 0.889 | 100.00% | deterministic local fixture |
 
-The IPF row is the committed golden disease fixture used by CI. Live rows should
-be filled only after API quota, model hardware, and Neo4j are available.
+These rows are committed local browser fixtures backed by retrieved PubMed
+identifiers and used by CI to keep the UI, report writer, molecule triage, and
+knowledge graph honest. They are not live benchmark claims. Live rows should be
+added only after API quota, model hardware, Neo4j, and citation checks are
+available for that run.
 
 ## What is real vs mocked
 
