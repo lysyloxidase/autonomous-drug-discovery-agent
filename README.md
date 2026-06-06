@@ -169,6 +169,27 @@ flowchart TB
 | Local browser dashboard | Implemented | Includes visual knowledge graph |
 | CI | Implemented | Ruff, Pyright, pytest, coverage, Docker build |
 
+## Phase Roadmap
+
+| Week | Phase | Status | Commit / planned work |
+| --- | --- | --- | --- |
+| Week 1 | Retrieval | Done | `55c4c7b` `feat: retrieval layer — PubMed + Europe PMC + OpenAlex + PubTator3 clients + token-bucket rate limiting + caching + DOI/PMID dedupe` |
+| Week 2 | Extraction | Done | `7a8d5ee` `feat: entity extraction & grounding — PubTator3 ground truth + scispaCy fallback + local-LLM relation extraction (honest precision/recall vs PubTator3/BioRED)` |
+| Week 3 | Neo4j KG | Done | `7691665` `feat: Neo4j knowledge graph — disease-gene-pathway-drug-phenotype schema + APOC batch load + provenance on every edge + GDS centrality` |
+| Week 4 | Evidence tiering | Done | `812c357` `feat: evidence tiering — Open Targets CC0 grounding (harmonic-sum scoring) + robust/plausible/speculative + co-occurrence-always-speculative honesty` |
+| Week 5 | Ranking + molecules | Done | `8776fc8` `feat: target ranking — transparent multi-criteria + ChEMBL/RDKit molecule triage (known actives only, honest scope)` |
+| Week 6 | Orchestrator + report | Done | `98b5875` `feat: dual orchestrator (custom + LangGraph parity) + citation-grounded report (retrieval-only) + PMID verification (citation accuracy >= 0.95 gate)` |
+| Week 7 | Productionization | Done | `5999454` `feat: productionization — FastAPI streaming + one-command docker compose + CI with cassettes + README (results table + real-vs-mocked); v1.0.0 release` |
+
+Post-launch backlog:
+
+| Work | Status | Notes |
+| --- | --- | --- |
+| `docs: record demo GIF + write the example IPF report walkthrough` | Planned | README keeps the `[DEMO GIF HERE]` slot until the browser flow is recorded. |
+| `feat: optional API-LLM upgrade path (Claude/GPT) behind a flag` | Planned | Local Ollama remains the default; paid/API models should be opt-in. |
+| `feat: add more demo diseases to the results table` | Done | Implemented by `af2fffa` and documented by `17f6964`. |
+| `perf: parallelize multi-source retrieval within rate limits` | Planned | Keep token-bucket limits and source-level degradation intact. |
+
 ## Evidence Tiers
 
 | Tier | Meaning |
