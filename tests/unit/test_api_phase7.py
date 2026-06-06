@@ -57,6 +57,40 @@ def test_submit_status_stream_and_result_formats(client: TestClient) -> None:
     assert "triaged_molecules" in json_result.json()["report"]
 
 
+@pytest.mark.parametrize(
+    ("disease", "fixture", "top_target", "publication_count"),
+    [
+        ("glioblastoma", "glioblastoma", "EGFR", 5),
+        ("TNBC", "triple-negative breast cancer", "BRCA1", 4),
+        ("endometriosis", "endometriosis", "ESR1", 4),
+    ],
+)
+def test_demo_disease_fixtures_return_rankings_and_graph(
+    client: TestClient,
+    disease: str,
+    fixture: str,
+    top_target: str,
+    publication_count: int,
+) -> None:
+    job_id = submit_job(client, disease)
+
+    response = client.get(f"/jobs/{job_id}/result?format=json")
+    assert response.status_code == 200
+    report = response.json()["report"]
+    graph = report["knowledge_graph"]
+
+    assert report["demo_fixture"] == fixture
+    assert report["targets"][0]["target_symbol"] == top_target
+    assert len(report["targets"]) == 5
+    assert len(report["retrieved_pmids"]) == publication_count
+    assert report["citation_accuracy"] == 1.0
+    assert report["kg_nodes"] >= 10
+    assert report["kg_relations"] >= 14
+    assert any(node["label"] == top_target for node in graph["nodes"])
+    assert any(edge["relation"] == "ASSOCIATED_WITH" for edge in graph["edges"])
+    assert any(report["triaged_molecules"].values())
+
+
 def test_result_before_completion_returns_conflict(tmp_path: Path) -> None:
     manager = JobManager(checkpoint_dir=tmp_path)
     app = create_app(manager)
@@ -105,6 +139,8 @@ def test_browser_app_serves_target_discovery_ui(client: TestClient) -> None:
     assert response.status_code == 200
     assert "Therapeutic target research console" in response.text
     assert "Knowledge graph" in response.text
+    assert "glioblastoma" in response.text
+    assert "endometriosis" in response.text
     assert "/assets/app.js" in response.text
     assert script.status_code == 200
     assert "renderKnowledgeGraph" in script.text

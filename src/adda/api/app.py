@@ -69,7 +69,15 @@ class ReportFormat(StrEnum):
 class JobSubmit(BaseModel):
     """Submit a disease run."""
 
-    disease: str = Field(min_length=1, examples=["idiopathic pulmonary fibrosis"])
+    disease: str = Field(
+        min_length=1,
+        examples=[
+            "idiopathic pulmonary fibrosis",
+            "glioblastoma",
+            "TNBC",
+            "endometriosis",
+        ],
+    )
 
 
 class JobSubmitResponse(BaseModel):
@@ -129,30 +137,386 @@ class JobRecord:
         self.updated_at = datetime.now(UTC).isoformat()
 
 
-def _demo_publications(disease: str) -> list[Publication]:
-    return [
-        Publication(
-            canonical_id="pmid:21506741",
+@dataclass(frozen=True)
+class DemoPublication:
+    """One committed PubMed-backed publication in a local demo fixture."""
+
+    pmid: str
+    title: str
+    doi: str | None = None
+    citation_count: int = 0
+
+
+@dataclass(frozen=True)
+class DemoTarget:
+    """One ranked target in a committed local demo fixture."""
+
+    symbol: str
+    target_id: str
+    tier: str
+    composite: float
+    genetic: float
+    druggability: float
+
+
+@dataclass(frozen=True)
+class DemoMolecule:
+    """Known-active molecule triage entry for the local browser demo."""
+
+    target_id: str
+    molecule_chembl_id: str
+    scope_label: str
+    qed: float
+
+
+@dataclass(frozen=True)
+class DemoDiseaseFixture:
+    """Deterministic disease fixture used by the local app and CI smoke tests."""
+
+    key: str
+    canonical_name: str
+    disease_id: str
+    ontology: str
+    aliases: tuple[str, ...]
+    publications: tuple[DemoPublication, ...]
+    targets: tuple[DemoTarget, ...]
+    molecules: tuple[DemoMolecule, ...]
+    extraction_precision: float
+    extraction_recall: float
+
+    @property
+    def kg_node_count(self) -> int:
+        """Return the deterministic graph size surfaced in the demo metrics."""
+
+        molecule_ids = {molecule.molecule_chembl_id for molecule in self.molecules}
+        return 1 + len(self.targets) + len(self.publications) + len(molecule_ids)
+
+    @property
+    def kg_relation_count(self) -> int:
+        """Return the deterministic edge count surfaced in the demo metrics."""
+
+        return len(self.targets) * 2 + len(self.publications) + len(self.molecules)
+
+
+IPF_FIXTURE = DemoDiseaseFixture(
+    key="ipf",
+    canonical_name="idiopathic pulmonary fibrosis",
+    disease_id="EFO:0000768",
+    ontology="EFO",
+    aliases=("idiopathic pulmonary fibrosis", "ipf", "pulmonary fibrosis"),
+    publications=(
+        DemoPublication(
             pmid="21506741",
             doi="10.1056/NEJMoa1013660",
             title="Common MUC5B promoter variant and pulmonary fibrosis",
-            sources=["demo-fixture"],
             citation_count=1200,
         ),
-        Publication(
-            canonical_id="pmid:33640084",
+        DemoPublication(
             pmid="33640084",
-            title=f"Open Targets-style evidence synthesis for {disease}",
-            sources=["demo-fixture"],
+            title=(
+                "Open Targets-style evidence synthesis for idiopathic "
+                "pulmonary fibrosis"
+            ),
             citation_count=180,
         ),
-        Publication(
-            canonical_id="pmid:30190408",
+        DemoPublication(
             pmid="30190408",
             title="Fibrosis target biology and translational validation",
-            sources=["demo-fixture"],
             citation_count=420,
         ),
+    ),
+    targets=(
+        DemoTarget("MUC5B", "NCBI:727897", "robust", 0.91, 0.95, 0.42),
+        DemoTarget("TGFB1", "NCBI:7040", "robust", 0.86, 0.72, 0.58),
+        DemoTarget("MMP7", "NCBI:4316", "plausible", 0.79, 0.52, 0.64),
+        DemoTarget("TERT", "NCBI:7015", "plausible", 0.74, 0.76, 0.30),
+        DemoTarget("SFTPC", "NCBI:6440", "plausible", 0.69, 0.68, 0.34),
+    ),
+    molecules=(
+        DemoMolecule(
+            target_id="NCBI:7040",
+            molecule_chembl_id="CHEMBL_DEMO_TGFB1",
+            scope_label="known actives only; not de novo design; not docking",
+            qed=0.42,
+        ),
+    ),
+    extraction_precision=0.667,
+    extraction_recall=1.0,
+)
+
+
+DEMO_FIXTURES = (
+    IPF_FIXTURE,
+    DemoDiseaseFixture(
+        key="glioblastoma",
+        canonical_name="glioblastoma",
+        disease_id="EFO:0000519",
+        ontology="EFO",
+        aliases=("glioblastoma", "gbm", "glioblastoma multiforme"),
+        publications=(
+            DemoPublication(
+                pmid="18772890",
+                doi="10.1038/nature07385",
+                title=(
+                    "Comprehensive genomic characterization defines human "
+                    "glioblastoma genes and core pathways"
+                ),
+                citation_count=2600,
+            ),
+            DemoPublication(
+                pmid="15758010",
+                doi="10.1056/NEJMoa043331",
+                title=(
+                    "MGMT gene silencing and benefit from temozolomide in glioblastoma"
+                ),
+                citation_count=4800,
+            ),
+            DemoPublication(
+                pmid="18772396",
+                doi="10.1126/science.1164382",
+                title="An integrated genomic analysis of human glioblastoma multiforme",
+                citation_count=2700,
+            ),
+            DemoPublication(
+                pmid="23530248",
+                doi="10.1073/pnas.1303607110",
+                title=(
+                    "TERT promoter mutations occur frequently in gliomas and "
+                    "a subset of tumors derived from cells with low rates of "
+                    "self-renewal"
+                ),
+                citation_count=1800,
+            ),
+            DemoPublication(
+                pmid="20129251",
+                doi="10.1016/j.ccr.2009.12.020",
+                title=(
+                    "Integrated genomic analysis identifies clinically relevant "
+                    "subtypes of glioblastoma characterized by abnormalities in "
+                    "PDGFRA, IDH1, EGFR, and NF1"
+                ),
+                citation_count=3000,
+            ),
+        ),
+        targets=(
+            DemoTarget("EGFR", "NCBI:1956", "robust", 0.90, 0.78, 0.72),
+            DemoTarget("MGMT", "NCBI:4255", "robust", 0.86, 0.70, 0.40),
+            DemoTarget("IDH1", "NCBI:3417", "robust", 0.82, 0.88, 0.58),
+            DemoTarget("TERT", "NCBI:7015", "plausible", 0.76, 0.74, 0.32),
+            DemoTarget("PDGFRA", "NCBI:5156", "plausible", 0.72, 0.62, 0.68),
+        ),
+        molecules=(
+            DemoMolecule(
+                target_id="NCBI:1956",
+                molecule_chembl_id="CHEMBL_DEMO_EGFR",
+                scope_label="known EGFR-targeting active; research triage only",
+                qed=0.55,
+            ),
+            DemoMolecule(
+                target_id="NCBI:3417",
+                molecule_chembl_id="CHEMBL_DEMO_IDH1",
+                scope_label="known IDH1-targeting active; research triage only",
+                qed=0.61,
+            ),
+            DemoMolecule(
+                target_id="NCBI:5156",
+                molecule_chembl_id="CHEMBL_DEMO_PDGFRA",
+                scope_label="known PDGFRA-targeting active; research triage only",
+                qed=0.50,
+            ),
+        ),
+        extraction_precision=0.648,
+        extraction_recall=0.923,
+    ),
+    DemoDiseaseFixture(
+        key="tnbc",
+        canonical_name="triple-negative breast cancer",
+        disease_id="MONDO:0007254",
+        ontology="MONDO",
+        aliases=(
+            "tnbc",
+            "triple negative breast cancer",
+            "triple-negative breast cancer",
+        ),
+        publications=(
+            DemoPublication(
+                pmid="21633166",
+                doi="10.1172/JCI45014",
+                title=(
+                    "Identification of human triple-negative breast cancer "
+                    "subtypes and preclinical models for selection of "
+                    "targeted therapies"
+                ),
+                citation_count=2400,
+            ),
+            DemoPublication(
+                pmid="28578601",
+                doi="10.1056/NEJMoa1706450",
+                title=(
+                    "Olaparib for metastatic breast cancer in patients with a "
+                    "germline BRCA mutation"
+                ),
+                citation_count=2100,
+            ),
+            DemoPublication(
+                pmid="30345906",
+                doi="10.1056/NEJMoa1809615",
+                title=(
+                    "Atezolizumab and nab-paclitaxel in advanced "
+                    "triple-negative breast cancer"
+                ),
+                citation_count=1900,
+            ),
+            DemoPublication(
+                pmid="29883487",
+                doi="10.1371/journal.pone.0197827",
+                title=(
+                    "Androgen receptor positive triple negative breast cancer: "
+                    "clinicopathologic, prognostic, and predictive features"
+                ),
+                citation_count=260,
+            ),
+        ),
+        targets=(
+            DemoTarget("BRCA1", "NCBI:672", "robust", 0.88, 0.90, 0.40),
+            DemoTarget("PARP1", "NCBI:142", "robust", 0.84, 0.70, 0.76),
+            DemoTarget("CD274", "NCBI:29126", "robust", 0.80, 0.42, 0.66),
+            DemoTarget("EGFR", "NCBI:1956", "plausible", 0.73, 0.35, 0.72),
+            DemoTarget("AR", "NCBI:367", "plausible", 0.69, 0.40, 0.62),
+        ),
+        molecules=(
+            DemoMolecule(
+                target_id="NCBI:142",
+                molecule_chembl_id="CHEMBL_DEMO_PARPI",
+                scope_label="known PARP-active class exemplar; research triage only",
+                qed=0.58,
+            ),
+            DemoMolecule(
+                target_id="NCBI:29126",
+                molecule_chembl_id="CHEMBL_DEMO_PDL1",
+                scope_label=(
+                    "known immune-checkpoint modality exemplar; not a "
+                    "small-molecule claim"
+                ),
+                qed=0.30,
+            ),
+            DemoMolecule(
+                target_id="NCBI:1956",
+                molecule_chembl_id="CHEMBL_DEMO_EGFR",
+                scope_label="known EGFR-targeting active; research triage only",
+                qed=0.55,
+            ),
+        ),
+        extraction_precision=0.641,
+        extraction_recall=0.909,
+    ),
+    DemoDiseaseFixture(
+        key="endometriosis",
+        canonical_name="endometriosis",
+        disease_id="EFO:0001065",
+        ontology="EFO",
+        aliases=("endometriosis",),
+        publications=(
+            DemoPublication(
+                pmid="12650711",
+                doi="10.1016/s0960-0760(02)00260-1",
+                title=(
+                    "Endometriosis: the pathophysiology as an "
+                    "estrogen-dependent disease"
+                ),
+                citation_count=920,
+            ),
+            DemoPublication(
+                pmid="8755660",
+                doi="10.1172/JCI118815",
+                title=(
+                    "Vascular endothelial growth factor is produced by "
+                    "peritoneal fluid macrophages in endometriosis and is "
+                    "regulated by ovarian steroids"
+                ),
+                citation_count=1050,
+            ),
+            DemoPublication(
+                pmid="18053993",
+                doi="10.1016/j.fertnstert.2007.07.1332",
+                title=(
+                    "Expression of cyclooxygenase-2 and vascular endothelial "
+                    "growth factor in ovarian endometriotic cysts and their "
+                    "relationship with angiogenesis"
+                ),
+                citation_count=430,
+            ),
+            DemoPublication(
+                pmid="1281760",
+                doi="10.1016/0009-8981(92)90204-4",
+                title=(
+                    "IL6 and acute phase plasma proteins in peritoneal fluid "
+                    "of women with endometriosis"
+                ),
+                citation_count=260,
+            ),
+        ),
+        targets=(
+            DemoTarget("ESR1", "NCBI:2099", "robust", 0.82, 0.58, 0.62),
+            DemoTarget("PGR", "NCBI:5241", "plausible", 0.78, 0.48, 0.58),
+            DemoTarget("VEGFA", "NCBI:7422", "plausible", 0.74, 0.42, 0.66),
+            DemoTarget("PTGS2", "NCBI:5743", "plausible", 0.70, 0.35, 0.70),
+            DemoTarget("IL6", "NCBI:3569", "plausible", 0.66, 0.32, 0.62),
+        ),
+        molecules=(
+            DemoMolecule(
+                target_id="NCBI:2099",
+                molecule_chembl_id="CHEMBL_DEMO_ESR1",
+                scope_label="known estrogen-receptor active; research triage only",
+                qed=0.47,
+            ),
+            DemoMolecule(
+                target_id="NCBI:5743",
+                molecule_chembl_id="CHEMBL_DEMO_COX2",
+                scope_label="known COX-2 active class exemplar; research triage only",
+                qed=0.63,
+            ),
+            DemoMolecule(
+                target_id="NCBI:3569",
+                molecule_chembl_id="CHEMBL_DEMO_IL6",
+                scope_label=(
+                    "known IL-6 pathway modality exemplar; not a small-molecule claim"
+                ),
+                qed=0.28,
+            ),
+        ),
+        extraction_precision=0.612,
+        extraction_recall=0.889,
+    ),
+)
+
+
+def _normalize_demo_key(value: str) -> str:
+    return " ".join(value.strip().lower().replace("-", " ").split())
+
+
+DEMO_FIXTURES_BY_ALIAS = {
+    _normalize_demo_key(alias): fixture
+    for fixture in DEMO_FIXTURES
+    for alias in (fixture.canonical_name, fixture.key, *fixture.aliases)
+}
+
+
+def _fixture_for_disease(disease: str) -> DemoDiseaseFixture:
+    return DEMO_FIXTURES_BY_ALIAS.get(_normalize_demo_key(disease), IPF_FIXTURE)
+
+
+def _demo_publications(fixture: DemoDiseaseFixture) -> list[Publication]:
+    return [
+        Publication(
+            canonical_id=f"pmid:{publication.pmid}",
+            pmid=publication.pmid,
+            doi=publication.doi,
+            title=publication.title,
+            sources=["demo-fixture", fixture.key],
+            citation_count=publication.citation_count,
+        )
+        for publication in fixture.publications
     ]
 
 
@@ -195,21 +559,31 @@ def create_demo_tools() -> list[Tool]:
     """Create deterministic no-live-API tools for CI and compose demos."""
 
     def retrieve(state: AgentState) -> AgentState:
-        publications = _demo_publications(state.disease_query)
+        fixture = _fixture_for_disease(state.disease_query)
+        publications = _demo_publications(fixture)
+        source_count = len(publications)
         state.corpus = Corpus(
             disease_query=state.disease_query,
             publications=publications,
             per_source_counts={
-                "pubmed": 3,
-                "europepmc": 3,
-                "openalex": 3,
-                "pubtator3": 3,
+                "pubmed": source_count,
+                "europepmc": source_count,
+                "openalex": source_count,
+                "pubtator3": source_count,
             },
             retrieved_at=datetime.now(UTC).isoformat(),
         )
+        state.report_json = {
+            **state.report_json,
+            "demo_fixture": fixture.canonical_name,
+            "demo_fixture_scope": (
+                "deterministic local demo fixture; not a live biomedical claim"
+            ),
+        }
         return state
 
     def extract(state: AgentState) -> AgentState:
+        fixture = _fixture_for_disease(state.disease_query)
         pmids = (
             [publication.pmid for publication in state.corpus.publications]
             if state.corpus
@@ -218,10 +592,10 @@ def create_demo_tools() -> list[Tool]:
         source_pmids = [pmid for pmid in pmids if pmid]
         state.entities = [
             Entity(
-                text="idiopathic pulmonary fibrosis",
+                text=fixture.canonical_name,
                 entity_type=EntityType.DISEASE,
-                normalized_id="EFO:0000768",
-                ontology="EFO",
+                normalized_id=fixture.disease_id,
+                ontology=fixture.ontology,
                 source_pmids=source_pmids,
                 extractor="demo_fixture",
                 confidence=1.0,
@@ -236,93 +610,60 @@ def create_demo_tools() -> list[Tool]:
                     extractor="demo_fixture",
                     confidence=0.95,
                 )
-                for symbol, target_id in (
-                    ("MUC5B", "NCBI:727897"),
-                    ("TGFB1", "NCBI:7040"),
-                    ("MMP7", "NCBI:4316"),
-                    ("TERT", "NCBI:7015"),
-                    ("SFTPC", "NCBI:6440"),
-                )
+                for target in fixture.targets
+                for symbol, target_id in ((target.symbol, target.target_id),)
             ],
         ]
         state.relations = []
         return state
 
     def build_kg(state: AgentState) -> AgentState:
+        fixture = _fixture_for_disease(state.disease_query)
         state.kg_built = True
         state.report_json = {
             **state.report_json,
-            "kg_nodes": len(state.entities) + 1,
-            "kg_relations": 5,
+            "kg_nodes": fixture.kg_node_count,
+            "kg_relations": fixture.kg_relation_count,
         }
         return state
 
     def score_evidence(state: AgentState) -> AgentState:
+        fixture = _fixture_for_disease(state.disease_query)
         state.report_json = {
             **state.report_json,
             "evidence_scored": True,
-            "extraction_precision_vs_pubtator3": 0.667,
-            "extraction_recall_vs_pubtator3": 1.0,
+            "extraction_precision_vs_pubtator3": fixture.extraction_precision,
+            "extraction_recall_vs_pubtator3": fixture.extraction_recall,
         }
         return state
 
     def rank_targets(state: AgentState) -> AgentState:
+        fixture = _fixture_for_disease(state.disease_query)
         state.target_scores = [
             _target_score(
-                symbol="MUC5B",
-                target_id="NCBI:727897",
-                tier="robust",
-                composite=0.91,
-                genetic=0.95,
-                druggability=0.42,
-            ),
-            _target_score(
-                symbol="TGFB1",
-                target_id="NCBI:7040",
-                tier="robust",
-                composite=0.86,
-                genetic=0.72,
-                druggability=0.58,
-            ),
-            _target_score(
-                symbol="MMP7",
-                target_id="NCBI:4316",
-                tier="plausible",
-                composite=0.79,
-                genetic=0.52,
-                druggability=0.64,
-            ),
-            _target_score(
-                symbol="TERT",
-                target_id="NCBI:7015",
-                tier="plausible",
-                composite=0.74,
-                genetic=0.76,
-                druggability=0.3,
-            ),
-            _target_score(
-                symbol="SFTPC",
-                target_id="NCBI:6440",
-                tier="plausible",
-                composite=0.69,
-                genetic=0.68,
-                druggability=0.34,
-            ),
+                symbol=target.symbol,
+                target_id=target.target_id,
+                tier=target.tier,
+                composite=target.composite,
+                genetic=target.genetic,
+                druggability=target.druggability,
+            )
+            for target in fixture.targets
         ]
         return state
 
     def triage(state: AgentState) -> AgentState:
-        state.triaged_molecules = {
-            "NCBI:7040": [
+        fixture = _fixture_for_disease(state.disease_query)
+        triaged: dict[str, list[dict[str, object]]] = {}
+        for molecule in fixture.molecules:
+            triaged.setdefault(molecule.target_id, []).append(
                 {
-                    "molecule_chembl_id": "CHEMBL_DEMO_TGFB1",
-                    "scope_label": (
-                        "known actives only; not de novo design; not docking"
-                    ),
-                    "qed": 0.42,
+                    "molecule_chembl_id": molecule.molecule_chembl_id,
+                    "scope_label": molecule.scope_label,
+                    "qed": molecule.qed,
                 }
-            ]
-        }
+            )
+        state.triaged_molecules = triaged
         return state
 
     return [

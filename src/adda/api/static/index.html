@@ -31,10 +31,17 @@
                 id="disease-input"
                 name="disease"
                 type="search"
+                list="demo-disease-options"
                 autocomplete="off"
                 value="idiopathic pulmonary fibrosis"
                 placeholder="e.g. idiopathic pulmonary fibrosis"
               />
+              <datalist id="demo-disease-options">
+                <option value="idiopathic pulmonary fibrosis"></option>
+                <option value="glioblastoma"></option>
+                <option value="TNBC"></option>
+                <option value="endometriosis"></option>
+              </datalist>
               <button type="submit" id="run-button">Run target discovery</button>
             </div>
           </form>
